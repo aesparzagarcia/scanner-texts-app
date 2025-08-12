@@ -8,13 +8,14 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-
+/*
 const path = require('path');
 app.use(express.static(path.join(__dirname, '../../../client/scanned-text-web/build')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../../client/scanned-text-web/build', 'index.html'));
 });
+*/
 
 const db = new sqlite3.Database('./texts.db', (err) => {
   if (err) {
