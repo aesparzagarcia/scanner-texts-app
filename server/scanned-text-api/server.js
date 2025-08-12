@@ -55,7 +55,7 @@ app.delete('/texts', (req, res) => {
   });
 });
 
-app.get('/texts', (req, res) => {
+/*app.get('/texts', (req, res) => {
   db.all('SELECT * FROM texts ORDER BY created_at DESC', [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: 'Failed to fetch texts' });
@@ -63,7 +63,7 @@ app.get('/texts', (req, res) => {
       res.json(rows);
     }
   });
-});
+});*/
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
