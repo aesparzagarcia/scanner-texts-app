@@ -8,7 +8,7 @@ function MainApp() {
   const [filteredTexts, setFilteredTexts] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/texts')
+    fetch('${process.env.REACT_APP_API_BASE_URL}/texts')
       .then(res => res.json())
       .then(data => {
         setTexts(data);
