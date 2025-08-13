@@ -51,7 +51,7 @@ function MainApp() {
 
   const handleClearDatabase = () => {
     if (!window.confirm('Are you sure you want to clear the database? This action cannot be undone.')) return;
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/texts`, { method: 'DELETE' })
+    fetch(`https://scanner-texts-app.onrender.com/texts`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setTexts([]);
