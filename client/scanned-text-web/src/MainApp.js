@@ -8,7 +8,7 @@ function MainApp() {
   const [showClearButton, setShowClearButton] = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/texts`)
+    fetch(`https://scanner-texts-app.onrender.com/texts`)
       .then(res => res.json())
       .then(data => {
         setTexts(data);
