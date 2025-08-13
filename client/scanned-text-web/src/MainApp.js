@@ -4,6 +4,7 @@ function MainApp() {
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
+  const [filterColony, setFilterColony] = useState('');
   const [filteredTexts, setFilteredTexts] = useState([]);
   const [showClearButton, setShowClearButton] = useState(false);
 
@@ -33,19 +34,27 @@ function MainApp() {
   };
 
   const handleFilter = () => {
-    if (!filterSection) {
-      setFilteredTexts(texts);
-      return;
-    }
+    const sectionTerm = filterSection.trim().toLowerCase();
+    const colonyTerm = filterColony.trim().toLowerCase();
+
     const filtered = texts.filter(({ text }) => {
       const data = parseMapString(text);
-      return data.seccion === filterSection;
+
+      const matchesSection =
+        !sectionTerm || (data.seccion && data.seccion.toLowerCase().includes(sectionTerm));
+
+      const matchesColony =
+        !colonyTerm || (data.colonia && data.colonia.toLowerCase().includes(colonyTerm));
+
+      return matchesSection && matchesColony;
     });
+
     setFilteredTexts(filtered);
   };
 
   const handleClearFilter = () => {
     setFilterSection('');
+    setFilterColony('');
     setFilteredTexts(texts);
   };
 
@@ -73,6 +82,13 @@ function MainApp() {
           placeholder="Filtrar por sección"
           value={filterSection}
           onChange={(e) => setFilterSection(e.target.value)}
+          style={{ marginRight: 8 }}
+        />
+        <input
+          type="text"
+          placeholder="Filtrar por colonia"
+          value={filterColony}
+          onChange={(e) => setFilterColony(e.target.value)}
           style={{ marginRight: 8 }}
         />
         <button onClick={handleFilter} style={{ marginRight: 8 }}>Filtrar</button>
