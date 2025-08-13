@@ -8,7 +8,8 @@ function MainApp() {
   const [filteredTexts, setFilteredTexts] = useState([]);
 
   useEffect(() => {
-    fetch('${process.env.REACT_APP_API_BASE_URL}/texts')
+    //fetch('${process.env.REACT_APP_API_BASE_URL}/texts')
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/texts`)
       .then(res => res.json())
       .then(data => {
         setTexts(data);
@@ -38,8 +39,8 @@ function MainApp() {
       setFilteredTexts(texts);
       return;
     }
-    const filtered = texts.filter(({ content }) => {
-      const data = parseMapString(content);
+    const filtered = texts.filter(({ text }) => {
+      const data = parseMapString(text);
       return data.seccion === filterSection;
     });
     setFilteredTexts(filtered);
@@ -100,8 +101,8 @@ function MainApp() {
           </tr>
         </thead>
         <tbody>
-          {filteredTexts.map(({ id, content }) => {
-            const data = parseMapString(content);
+          {filteredTexts.map(({ id, text }) => {
+            const data = parseMapString(text);
             return (
               <tr key={id}>
                 <td>{data.nombre || 'N/A'}</td>
