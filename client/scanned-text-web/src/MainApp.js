@@ -1,4 +1,3 @@
-// src/MainApp.js
 import React, { useEffect, useState } from 'react';
 
 function MainApp() {
@@ -6,9 +5,9 @@ function MainApp() {
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
   const [filteredTexts, setFilteredTexts] = useState([]);
+  const [showClearButton, setShowClearButton] = useState(false);
 
   useEffect(() => {
-    //fetch('${process.env.REACT_APP_API_BASE_URL}/texts')
     fetch(`${process.env.REACT_APP_API_BASE_URL}/texts`)
       .then(res => res.json())
       .then(data => {
@@ -20,6 +19,7 @@ function MainApp() {
   }, []);
 
   const parseMapString = (mapString) => {
+    if (!mapString) return {};
     const cleanedString = mapString.trim().replace(/^\{|\}$/g, '');
     const regex = /(\w+)=((?:[^=,]|=(?!\w+=))+)/g;
     const obj = {};
@@ -31,8 +31,6 @@ function MainApp() {
     }
     return obj;
   };
-
-  const [showClearButton, setShowClearButton] = useState(false); // Show or hide clear data base button
 
   const handleFilter = () => {
     if (!filterSection) {
@@ -53,7 +51,7 @@ function MainApp() {
 
   const handleClearDatabase = () => {
     if (!window.confirm('Are you sure you want to clear the database? This action cannot be undone.')) return;
-    fetch('http://localhost:3000/texts', { method: 'DELETE' })
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/texts`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setTexts([]);
@@ -85,8 +83,10 @@ function MainApp() {
           </button>
         )}
       </div>
+
       {loading && <p>Loading...</p>}
       {!loading && filteredTexts.length === 0 && <p>No texts found.</p>}
+
       <table border="1" cellPadding="8" cellSpacing="0" style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
