@@ -80,6 +80,7 @@ app.get('/texts', async (req, res) => {
     const mappedRows = result.rows.map(row => ({
       id: row.id,
       text: row.content,
+      status: row.status,
       createdAt: row.created_at
     }));
     res.json(mappedRows);
