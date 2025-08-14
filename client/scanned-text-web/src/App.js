@@ -24,7 +24,7 @@ function App() {
   return (
     <div>
       <div style={{ padding: 10, backgroundColor: '#eee' }}>
-        Logged in as: {user.email} <button onClick={handleLogout}>Logout</button>
+        Bienvenido: {user.email} <button onClick={handleLogout}>Salir</button>
       </div>
       <MainApp />
     </div>
