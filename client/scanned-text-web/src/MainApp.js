@@ -73,6 +73,24 @@ function MainApp() {
       .catch(() => alert('Error clearing database'));
   };
 
+  const toggleStatus = (id, newStatus) => {
+    fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+      .then(res => res.json())
+      .then(updatedText => {
+        setTexts(prev =>
+          prev.map(t => t.id === updatedText.id ? { ...t, status: updatedText.status } : t)
+        );
+        setFilteredTexts(prev =>
+          prev.map(t => t.id === updatedText.id ? { ...t, status: updatedText.status } : t)
+        );
+      })
+      .catch(() => alert('Error updating status'));
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Info scaneada</h1>
@@ -112,12 +130,13 @@ function MainApp() {
             <th>Sección</th>
             <th>Colonia</th>
             <th>Petición</th>
+            <th>Status</th>
             <th>Referencia</th>
             <th>Creado por</th>
           </tr>
         </thead>
         <tbody>
-          {filteredTexts.map(({ id, text }) => {
+          {filteredTexts.map(({ id, text, status }) => {
             const data = parseMapString(text);
             return (
               <tr key={id}>
@@ -127,6 +146,21 @@ function MainApp() {
                 <td>{data.seccion || 'N/A'}</td>
                 <td>{data.colonia || 'N/A'}</td>
                 <td>{data.peticion || 'N/A'}</td>
+                <td>
+                  <button
+                    onClick={() => toggleStatus(id, !status)}
+                    style={{
+                      backgroundColor: status ? 'green' : 'red',
+                      color: 'white',
+                      padding: '4px 8px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {status ? 'Completado' : 'Pendiente'}
+                  </button>
+                </td>
                 <td>{data.referencia || 'N/A'}</td>
                 <td>{data.creadopor || 'N/A'}</td>
               </tr>

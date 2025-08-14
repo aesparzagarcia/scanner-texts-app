@@ -24,6 +24,7 @@ const pool = new Pool({
       CREATE TABLE IF NOT EXISTS texts (
         id SERIAL PRIMARY KEY,
         content TEXT NOT NULL,
+        status BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -44,12 +45,13 @@ app.post('/texts', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO texts (content) VALUES ($1) RETURNING id, content, created_at',
-      [text]
+      'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
+      [text, false]
     );
     res.status(201).json({
       id: result.rows[0].id,
       text: result.rows[0].content,
+      status: result.rows[0].status,
       createdAt: result.rows[0].created_at
     });
   } catch (err) {
@@ -84,6 +86,26 @@ app.get('/texts', async (req, res) => {
   } catch (err) {
     console.error('❌ Fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch texts' });
+  }
+});
+
+// PATCH - Update status
+app.patch('/texts/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const result = await pool.query(
+      'UPDATE texts SET status = $1 WHERE id = $2 RETURNING id, content, status, created_at',
+      [status, id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Text not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Update status error:', err);
+    res.status(500).json({ error: 'Failed to update status' });
   }
 });
 
