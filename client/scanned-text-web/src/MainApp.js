@@ -130,7 +130,7 @@ function MainApp() {
             <th>Sección</th>
             <th>Colonia</th>
             <th>Petición</th>
-            <th>Status</th>
+            <th>Estatus</th>
             <th>Referencia</th>
             <th>Creado por</th>
           </tr>
