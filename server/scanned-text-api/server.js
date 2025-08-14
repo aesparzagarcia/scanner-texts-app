@@ -1,89 +1,97 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { Pool } = require('pg');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-/*
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../../../client/scanned-text-web/build')));
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../../client/scanned-text-web/build', 'index.html'));
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Required by Render
 });
-*/
 
-const db = new sqlite3.Database('./texts.db', (err) => {
-  if (err) {
-    console.error('Error opening DB', err);
-  } else {
-    db.run(`CREATE TABLE IF NOT EXISTS texts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+// Create table if it doesn't exist
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS texts (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ PostgreSQL table ready');
+  } catch (err) {
+    console.error('❌ Error creating table', err);
   }
-});
+})();
 
-app.post('/texts', (req, res) => {
+// Routes
+
+// POST - Insert a new text
+app.post('/texts', async (req, res) => {
   const { text } = req.body;
   if (!text) {
     return res.status(400).json({ error: 'Text is required' });
   }
 
-  const stmt = db.prepare('INSERT INTO texts (content) VALUES (?)');
-  stmt.run(text, function(err) {
-    if (err) {
-      res.status(500).json({ error: 'Failed to insert text' });
-    } else {
-      res.status(201).json({ id: this.lastID, text });
-    }
-  });
-  stmt.finalize();
+  try {
+    const result = await pool.query(
+      'INSERT INTO texts (content) VALUES ($1) RETURNING id, content, created_at',
+      [text]
+    );
+    res.status(201).json({
+      id: result.rows[0].id,
+      text: result.rows[0].content,
+      createdAt: result.rows[0].created_at
+    });
+  } catch (err) {
+    console.error('❌ Insert error:', err);
+    res.status(500).json({ error: 'Failed to insert text' });
+  }
 });
 
-app.delete('/texts', (req, res) => {
-  db.run('DELETE FROM texts', function(err) {
-    if (err) {
-      res.status(500).json({ error: 'Failed to delete texts' });
-    } else {
-      res.json({ message: 'All texts deleted' });
-    }
-  });
+// DELETE - Remove all texts
+app.delete('/texts', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM texts');
+    res.json({ message: 'All texts deleted' });
+  } catch (err) {
+    console.error('❌ Delete error:', err);
+    res.status(500).json({ error: 'Failed to delete texts' });
+  }
 });
 
-/*app.get('/texts', (req, res) => {
-  db.all('SELECT * FROM texts ORDER BY created_at DESC', [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: 'Failed to fetch texts' });
-    } else {
-      res.json(rows);
-    }
-  });
-});*/
+// GET - Retrieve all texts
+app.get('/texts', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, content, created_at FROM texts ORDER BY created_at DESC'
+    );
+    const mappedRows = result.rows.map(row => ({
+      id: row.id,
+      text: row.content,
+      createdAt: row.created_at
+    }));
+    res.json(mappedRows);
+  } catch (err) {
+    console.error('❌ Fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch texts' });
+  }
+});
 
+// Start server
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+  console.log(`🚀 Server listening at http://localhost:${port}`);
 });
 
-app.get('/texts', (req, res) => {
-  db.all('SELECT * FROM texts ORDER BY created_at DESC', [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: 'Failed to fetch texts' });
-    } else {
-      const mappedRows = rows.map(row => ({
-        id: row.id,
-        text: row.content,
-        createdAt: row.created_at
-      }));
-      res.json(mappedRows);
-    }
-  });
-});
 
 
 /*
