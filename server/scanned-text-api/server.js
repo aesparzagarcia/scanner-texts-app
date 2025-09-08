@@ -44,9 +44,12 @@ app.post('/texts', async (req, res) => {
   }
 
   try {
+    // Convert object to string before saving to DB
+    const textString = JSON.stringify(text);
+    
     const result = await pool.query(
       'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
-      [text, false]
+      [textString, false]
     );
     res.status(201).json({
       id: result.rows[0].id,
