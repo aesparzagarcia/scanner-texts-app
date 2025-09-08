@@ -38,10 +38,8 @@ const pool = new Pool({
 
 // POST - Insert a new text
 app.post('/texts', async (req, res) => {
-  //const { text } = req.body;
-  console.log("BODY:", req.body);
-  res.send("ok");
-  /*if (!text) {
+  const { text } = req.body;
+  if (!text) {
     return res.status(400).json({ error: 'Text is required' });
   }
 
@@ -62,7 +60,7 @@ app.post('/texts', async (req, res) => {
   } catch (err) {
     console.error('❌ Insert error:', err);
     res.status(500).json({ error: 'Failed to insert text' });
-  }*/
+  }
 });
 
 // DELETE - Remove all texts
