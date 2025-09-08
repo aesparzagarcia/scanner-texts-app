@@ -38,20 +38,18 @@ const pool = new Pool({
 
 // POST - Insert a new text
 app.post('/texts', async (req, res) => {
-  //const { text } = req.body;
-  console.log("BODY:", req.body);
-  res.send("ok");
-  /*if (!text) {
+  const { text } = req.body;
+  if (!text) {
     return res.status(400).json({ error: 'Text is required' });
   }
 
   try {
     // Convert object to string before saving to DB
     const textString = JSON.stringify(text);
-
+    
     const result = await pool.query(
       'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
-      [textString, false]
+      [text, false]
     );
     res.status(201).json({
       id: result.rows[0].id,
@@ -62,7 +60,7 @@ app.post('/texts', async (req, res) => {
   } catch (err) {
     console.error('❌ Insert error:', err);
     res.status(500).json({ error: 'Failed to insert text' });
-  }*/
+  }
 });
 
 // DELETE - Remove all texts
