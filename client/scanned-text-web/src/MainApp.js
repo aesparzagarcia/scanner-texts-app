@@ -6,7 +6,7 @@ function MainApp() {
   const [filterSection, setFilterSection] = useState('');
   const [filterColony, setFilterColony] = useState('');
   const [filteredTexts, setFilteredTexts] = useState([]);
-  const [showClearButton, setShowClearButton] = useState(false);
+  const [showClearButton, setShowClearButton] = useState(true);
 
   useEffect(() => {
     fetch(`https://scanner-texts-app.onrender.com/texts`)
