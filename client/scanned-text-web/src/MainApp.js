@@ -8,8 +8,19 @@ function MainApp() {
   const [filteredTexts, setFilteredTexts] = useState([]);
   const [showClearButton, setShowClearButton] = useState(false);
 
-  useEffect(() => {
+  /*useEffect(() => {
     fetch(`https://scanner-texts-app.onrender.com/texts`)
+      .then(res => res.json())
+      .then(data => {
+        setTexts(data);
+        setFilteredTexts(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);*/
+
+  useEffect(() => {
+    fetch('https://scanner-texts-app.onrender.com/texts')
       .then(res => res.json())
       .then(data => {
         setTexts(data);
@@ -137,15 +148,14 @@ function MainApp() {
         </thead>
         <tbody>
           {filteredTexts.map(({ id, text, status }) => {
-            const data = parseMapString(text);
             return (
               <tr key={id}>
-                <td>{data.nombre || 'N/A'}</td>
-                <td>{data.domicilio || 'N/A'}</td>
-                <td>{data.telefono || 'N/A'}</td>
-                <td>{data.seccion || 'N/A'}</td>
-                <td>{data.colonia || 'N/A'}</td>
-                <td>{data.peticion || 'N/A'}</td>
+                <td>{text.nombre || 'N/A'}</td>
+                <td>{text.domicilio || 'N/A'}</td>
+                <td>{text.telefono || 'N/A'}</td>
+                <td>{text.seccion || 'N/A'}</td>
+                <td>{text.colonia || 'N/A'}</td>
+                <td>{text.peticion || 'N/A'}</td>
                 <td>
                   <button
                     onClick={() => toggleStatus(id, !status)}

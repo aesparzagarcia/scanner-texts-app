@@ -37,28 +37,58 @@ const pool = new Pool({
 
 // Routes
 
+// POST - Insert a new text 
+/*app.post('/texts', async (req, res) => { 
+  const { text } = req.body; 
+  if (!text) { 
+    return res.status(400).json({ error: 'Text is required' }); 
+  } try { 
+    // Convert object to string before saving to DB 
+    const textString = JSON.stringify(text); 
+    const result = await pool.query(
+        'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at', 
+        [text, false] 
+        ); 
+    res.status(201).json({ 
+      id: result.rows[0].id, 
+      text: result.rows[0].content, 
+      status: result.rows[0].status, createdAt: result.rows[0].created_at }); 
+  } catch (err) { 
+    console.error('❌ Insert error:', err); res.status(500).json({ error: 'Failed to insert text' }); }
+  }
+);*/
+
 // POST - Insert a new text
 app.post('/texts', async (req, res) => {
-  const { text } = req.body; // <-- already an object
+  const { text } = req.body; // text is an object
 
-  if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
+  if (!text || !text.nombre || !text.telefono) {
+    return res.status(400).json({ error: 'Nombre and telefono are required' });
   }
 
   try {
-    // Check if this exact object already exists
-    const resultCheck = await pool.query(
-      'SELECT * FROM texts WHERE content = $1',
-      [text]
+    // Check if a scan with same name + phone exists
+    const existing = await pool.query(
+      `SELECT id, content, status, created_at
+       FROM texts
+       WHERE content->>'nombre' = $1
+         AND content->>'telefono' = $2`,
+      [text.nombre, text.telefono]
     );
 
-    if (resultCheck.rows.length > 0) {
-      return res.status(409).json({ error: 'This text already exists' });
+    if (existing.rows.length > 0) {
+      return res.status(409).json({
+        error: 'This scan already exists',
+        existing: existing.rows[0]
+      });
     }
 
+    // Insert new scan
     const result = await pool.query(
-      'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
-      [text, false] // store as JSON
+      `INSERT INTO texts (content, status)
+       VALUES ($1::jsonb, $2)
+       RETURNING id, content, status, created_at`,
+      [text, false]
     );
 
     res.status(201).json({
@@ -67,11 +97,13 @@ app.post('/texts', async (req, res) => {
       status: result.rows[0].status,
       createdAt: result.rows[0].created_at
     });
+
   } catch (err) {
     console.error('❌ Insert error:', err);
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
+
 
 
 // DELETE - Remove all texts
