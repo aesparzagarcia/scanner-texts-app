@@ -37,64 +37,41 @@ const pool = new Pool({
 
 // Routes
 
-function normalizeText(s = '') {
-  return s
-    .trim()
-    .replace(/\s+/g, ' ')           // collapse multiple spaces
-    .replace(/[^\p{L}\p{N}\s]/gu, '') // remove punctuation (unicode safe)
-    .toLowerCase();
-}
-
+// POST - Insert a new text
 app.post('/texts', async (req, res) => {
-  // Accept a structured object from client:
-  // { text: "extracted text...", source: "camera", language: "es", meta: {...} }
-  const { text, source, language, meta } = req.body;
+  const { text } = req.body; // <-- already an object
 
-  if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: 'Text (string) is required' });
+  if (!text) {
+    return res.status(400).json({ error: 'Text is required' });
   }
 
   try {
-    // 1) Normalize and compute fingerprint
-    const normalized = normalizeText(text);
-    const contentHash = crypto.createHash('md5').update(normalized).digest('hex'); // 32 chars
-
-    // 2) Try insert with ON CONFLICT on content_hash
-    const result = await pool.query(
-      `INSERT INTO texts (content, status, content_hash, source, language, meta)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (content_hash) DO NOTHING
-       RETURNING id, content, status, created_at`,
-      [text, false, contentHash, source || null, language || null, meta || null]
+    // Check if this exact object already exists
+    const resultCheck = await pool.query(
+      'SELECT * FROM texts WHERE content = $1',
+      [text]
     );
 
-    if (result.rowCount === 0) {
-      // Duplicate detected (hash collision or exact duplicate)
-      // Optionally fetch and return the existing row
-      const existing = await pool.query(
-        'SELECT id, content, status, created_at FROM texts WHERE content_hash = $1',
-        [contentHash]
-      );
-      return res.status(409).json({
-        error: 'This text already exists',
-        existing: existing.rows[0]
-      });
+    if (resultCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'This text already exists' });
     }
 
-    // inserted successfully
-    const row = result.rows[0];
-    return res.status(201).json({
-      id: row.id,
-      text: row.content,
-      status: row.status,
-      createdAt: row.created_at
+    const result = await pool.query(
+      'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
+      [text, false] // store as JSON
+    );
+
+    res.status(201).json({
+      id: result.rows[0].id,
+      text: result.rows[0].content,
+      status: result.rows[0].status,
+      createdAt: result.rows[0].created_at
     });
   } catch (err) {
-    console.error('Insert error:', err);
-    return res.status(500).json({ error: 'Failed to insert text' });
+    console.error('❌ Insert error:', err);
+    res.status(500).json({ error: 'Failed to insert text' });
   }
 });
-
 
 
 // DELETE - Remove all texts
