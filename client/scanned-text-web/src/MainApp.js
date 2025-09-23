@@ -171,8 +171,8 @@ function MainApp() {
                     {status ? 'Completado' : 'Pendiente'}
                   </button>
                 </td>
-                <td>{data.referencia || 'N/A'}</td>
-                <td>{data.creadopor || 'N/A'}</td>
+                <td>{text.referencia || 'N/A'}</td>
+                <td>{text.creadopor || 'N/A'}</td>
               </tr>
             );
           })}
