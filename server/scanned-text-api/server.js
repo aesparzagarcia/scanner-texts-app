@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -36,41 +37,64 @@ const pool = new Pool({
 
 // Routes
 
-// POST - Insert a new text
+function normalizeText(s = '') {
+  return s
+    .trim()
+    .replace(/\s+/g, ' ')           // collapse multiple spaces
+    .replace(/[^\p{L}\p{N}\s]/gu, '') // remove punctuation (unicode safe)
+    .toLowerCase();
+}
+
 app.post('/texts', async (req, res) => {
-  const { text } = req.body;
-  if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
+  // Accept a structured object from client:
+  // { text: "extracted text...", source: "camera", language: "es", meta: {...} }
+  const { text, source, language, meta } = req.body;
+
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'Text (string) is required' });
   }
 
   try {
-    // 1. Check if text already exists
-    const existing = await pool.query(
-      'SELECT id FROM texts WHERE content = $1',
-      [text]
+    // 1) Normalize and compute fingerprint
+    const normalized = normalizeText(text);
+    const contentHash = crypto.createHash('md5').update(normalized).digest('hex'); // 32 chars
+
+    // 2) Try insert with ON CONFLICT on content_hash
+    const result = await pool.query(
+      `INSERT INTO texts (content, status, content_hash, source, language, meta)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (content_hash) DO NOTHING
+       RETURNING id, content, status, created_at`,
+      [text, false, contentHash, source || null, language || null, meta || null]
     );
 
-    if (existing.rows.length > 0) {
-      return res.status(409).json({ error: 'This text already exists' }); // 409 Conflict
+    if (result.rowCount === 0) {
+      // Duplicate detected (hash collision or exact duplicate)
+      // Optionally fetch and return the existing row
+      const existing = await pool.query(
+        'SELECT id, content, status, created_at FROM texts WHERE content_hash = $1',
+        [contentHash]
+      );
+      return res.status(409).json({
+        error: 'This text already exists',
+        existing: existing.rows[0]
+      });
     }
 
-    // 2. Insert new if not found
-    const result = await pool.query(
-      'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
-      [text, false]
-    );
-
-    res.status(201).json({
-      id: result.rows[0].id,
-      text: result.rows[0].content,
-      status: result.rows[0].status,
-      createdAt: result.rows[0].created_at
+    // inserted successfully
+    const row = result.rows[0];
+    return res.status(201).json({
+      id: row.id,
+      text: row.content,
+      status: row.status,
+      createdAt: row.created_at
     });
   } catch (err) {
-    console.error('❌ Insert error:', err);
-    res.status(500).json({ error: 'Failed to insert text' });
+    console.error('Insert error:', err);
+    return res.status(500).json({ error: 'Failed to insert text' });
   }
 });
+
 
 
 // DELETE - Remove all texts
