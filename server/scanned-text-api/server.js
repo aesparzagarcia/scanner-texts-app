@@ -44,13 +44,22 @@ app.post('/texts', async (req, res) => {
   }
 
   try {
-    // Convert object to string before saving to DB
-    const textString = JSON.stringify(text);
-    
+    // 1. Check if text already exists
+    const existing = await pool.query(
+      'SELECT id FROM texts WHERE content = $1',
+      [text]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'This text already exists' }); // 409 Conflict
+    }
+
+    // 2. Insert new if not found
     const result = await pool.query(
       'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at',
       [text, false]
     );
+
     res.status(201).json({
       id: result.rows[0].id,
       text: result.rows[0].content,
@@ -62,6 +71,7 @@ app.post('/texts', async (req, res) => {
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
+
 
 // DELETE - Remove all texts
 app.delete('/texts', async (req, res) => {
