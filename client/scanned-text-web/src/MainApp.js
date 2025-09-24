@@ -5,7 +5,7 @@ function MainApp() {
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
   const [filterColony, setFilterColony] = useState('');
-  const [filterDuplicated, setFilterDuplicated] = useState(null); // null = all, true = only duplicated, false = only not duplicated
+  const [filterDuplicated, setFilterDuplicated] = useState(null);
   const [filteredTexts, setFilteredTexts] = useState([]);
   const [showClearButton, setShowClearButton] = useState(false);
 
@@ -39,33 +39,13 @@ function MainApp() {
     setFilteredTexts(filtered);
   };
 
-  const handleFilter = () => {
-    applyFilters();
-  };
-
+  const handleFilter = () => applyFilters();
   const handleClearFilter = () => {
     setFilterSection('');
     setFilterColony('');
     setFilterDuplicated(null);
     setFilteredTexts(texts);
   };
-
-  const handleClearDatabase = () => {
-    if (!window.confirm('Are you sure you want to clear the database? This action cannot be undone.')) return;
-
-    fetch('https://scanner-texts-app.onrender.com/texts', { method: 'DELETE' })
-      .then(res => {
-        if (res.ok) {
-          setTexts([]);
-          setFilteredTexts([]);
-          alert('Database cleared!');
-        } else {
-          alert('Failed to clear database');
-        }
-      })
-      .catch(() => alert('Error clearing database'));
-  };
-
   const toggleStatus = (id, newStatus) => {
     fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
       method: 'PATCH',
@@ -84,107 +64,125 @@ function MainApp() {
       .catch(() => alert('Error updating status'));
   };
 
-  // React when duplicated filter changes
-  useEffect(() => {
-    applyFilters();
-  }, [filterDuplicated, texts]);
+  useEffect(() => applyFilters(), [filterDuplicated, texts]);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Info scaneada</h1>
+    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: 20 }}>📋 Info Scaneada</h1>
 
-      <div style={{ marginBottom: 20 }}>
+      {/* Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
         <input
           type="text"
-          placeholder="Filtrar por sección"
+          placeholder="Sección"
           value={filterSection}
           onChange={e => setFilterSection(e.target.value)}
-          style={{ marginRight: 8 }}
+          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', flex: 1, minWidth: 150 }}
         />
         <input
           type="text"
-          placeholder="Filtrar por colonia"
+          placeholder="Colonia"
           value={filterColony}
           onChange={e => setFilterColony(e.target.value)}
-          style={{ marginRight: 8 }}
+          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', flex: 1, minWidth: 150 }}
         />
-        <button onClick={handleFilter} style={{ marginRight: 8 }}>
+        <button
+          onClick={handleFilter}
+          style={{ padding: '8px 16px', borderRadius: 5, backgroundColor: '#007BFF', color: 'white', border: 'none', cursor: 'pointer' }}
+        >
           Filtrar
         </button>
-        <button onClick={handleClearFilter} style={{ marginRight: 16 }}>
-          Limpiar filtro
+        <button
+          onClick={handleClearFilter}
+          style={{ padding: '8px 16px', borderRadius: 5, backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer' }}
+        >
+          Limpiar
         </button>
 
-        <button onClick={() => setFilterDuplicated(true)} style={{ marginRight: 8 }}>
+        <button
+          onClick={() => setFilterDuplicated(true)}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 5,
+            backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
+            color: filterDuplicated === true ? 'white' : '#721c24',
+            border: '1px solid #dc3545',
+            cursor: 'pointer'
+          }}
+        >
           Duplicados
         </button>
-        <button onClick={() => setFilterDuplicated(false)} style={{ marginRight: 8 }}>
+        <button
+          onClick={() => setFilterDuplicated(false)}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 5,
+            backgroundColor: filterDuplicated === false ? '#28a745' : '#d4edda',
+            color: filterDuplicated === false ? 'white' : '#155724',
+            border: '1px solid #28a745',
+            cursor: 'pointer'
+          }}
+        >
           No Duplicados
         </button>
-
-        {showClearButton && (
-          <button
-            onClick={handleClearDatabase}
-            style={{ backgroundColor: 'red', color: 'white' }}
-          >
-            Clear Database
-          </button>
-        )}
       </div>
 
-      {loading && <p>⏳ Cargando datos...</p>}
-      {!loading && filteredTexts.length === 0 && <p>No texts found.</p>}
+      {/* Loading */}
+      {loading && <p style={{ textAlign: 'center' }}>⏳ Cargando datos...</p>}
 
+      {/* No data */}
+      {!loading && filteredTexts.length === 0 && <p style={{ textAlign: 'center' }}>No texts found.</p>}
+
+      {/* Table */}
       {!loading && filteredTexts.length > 0 && (
-        <table
-          border="1"
-          cellPadding="8"
-          cellSpacing="0"
-          style={{ width: '100%', borderCollapse: 'collapse' }}
-        >
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Domicilio</th>
-              <th>Teléfono</th>
-              <th>Sección</th>
-              <th>Colonia</th>
-              <th>Petición</th>
-              <th>Estatus</th>
-              <th>Referencia</th>
-              <th>Creado por</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTexts.map(({ id, text, status }) => (
-              <tr key={id}>
-                <td>{text.nombre || 'N/A'}</td>
-                <td>{text.domicilio || 'N/A'}</td>
-                <td>{text.telefono || 'N/A'}</td>
-                <td>{text.seccion || 'N/A'}</td>
-                <td>{text.colonia || 'N/A'}</td>
-                <td>{text.peticion || 'N/A'}</td>
-                <td>
-                  <button
-                    onClick={() => toggleStatus(id, !status)}
-                    style={{
-                      backgroundColor: status ? 'green' : 'red',
-                      color: 'white',
-                      padding: '4px 8px',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {status ? 'Completado' : 'Pendiente'}
-                  </button>
-                </td>
-                <td>{text.referencia || 'N/A'}</td>
-                <td>{text.creadopor || 'N/A'}</td>
+        <div style={{ overflowX: 'auto' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              boxShadow: '0 0 5px rgba(0,0,0,0.1)'
+            }}
+          >
+            <thead style={{ backgroundColor: '#f1f1f1' }}>
+              <tr>
+                {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(header => (
+                  <th key={header} style={{ padding: 10, textAlign: 'left', borderBottom: '2px solid #ccc' }}>{header}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredTexts.map(({ id, text, status }) => (
+                <tr key={id} style={{ borderBottom: '1px solid #eee', transition: 'background 0.2s' }} 
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9f9f9'} 
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
+                  <td style={{ padding: 8 }}>{text.nombre || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.domicilio || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.telefono || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.seccion || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.colonia || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.peticion || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>
+                    <button
+                      onClick={() => toggleStatus(id, !status)}
+                      style={{
+                        backgroundColor: status ? '#28a745' : '#dc3545',
+                        color: 'white',
+                        padding: '4px 8px',
+                        border: 'none',
+                        borderRadius: 5,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {status ? 'Completado' : 'Pendiente'}
+                    </button>
+                  </td>
+                  <td style={{ padding: 8 }}>{text.referencia || 'N/A'}</td>
+                  <td style={{ padding: 8 }}>{text.creadopor || 'N/A'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
