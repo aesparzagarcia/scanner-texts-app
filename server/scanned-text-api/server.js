@@ -100,12 +100,13 @@ app.delete('/texts', async (req, res) => {
 app.get('/texts', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, content, status, created_at FROM texts ORDER BY created_at DESC'
+      'SELECT id, content, status, duplicated, created_at FROM texts ORDER BY created_at DESC'
     );
     const mappedRows = result.rows.map(row => ({
       id: row.id,
       text: row.content,
       status: row.status,
+      duplicated: row.duplicated,
       createdAt: row.created_at
     }));
     res.json(mappedRows);
