@@ -37,65 +37,41 @@ const pool = new Pool({
 
 // Routes
 
-// POST - Insert a new text 
-/*app.post('/texts', async (req, res) => { 
-  const { text } = req.body; 
-  if (!text) { 
-    return res.status(400).json({ error: 'Text is required' }); 
-  } try { 
-    // Convert object to string before saving to DB 
-    const textString = JSON.stringify(text); 
-    const result = await pool.query(
-        'INSERT INTO texts (content, status) VALUES ($1, $2) RETURNING id, content, status, created_at', 
-        [text, false] 
-        ); 
-    res.status(201).json({ 
-      id: result.rows[0].id, 
-      text: result.rows[0].content, 
-      status: result.rows[0].status, createdAt: result.rows[0].created_at }); 
-  } catch (err) { 
-    console.error('❌ Insert error:', err); res.status(500).json({ error: 'Failed to insert text' }); }
-  }
-);*/
-
-// POST - Insert a new text
 app.post('/texts', async (req, res) => {
   const { text } = req.body; // text is an object
 
   if (!text || !text.nombre || !text.telefono) {
-    return res.status(400).json({ error: 'Nombre and telefono are required' });
+    return res.status(400).json({ error: 'Nombre y telefono son requeridos' });
   }
 
   try {
     // Check if a scan with same name + phone exists
     const existing = await pool.query(
-      `SELECT id, content, status, created_at
-       FROM texts
+      `SELECT id FROM texts
        WHERE content->>'nombre' = $1
          AND content->>'telefono' = $2`,
       [text.nombre, text.telefono]
     );
 
-    if (existing.rows.length > 0) {
-      return res.status(409).json({
-        error: 'This scan already exists',
-        existing: existing.rows[0]
-      });
-    }
+    const isExisting = existing.rows.length > 0;
+    const statusToSave = isExisting ? false : true; // true = active, false = inactive
 
-    // Insert new scan
+    // Insert the new scan
     const result = await pool.query(
       `INSERT INTO texts (content, status)
        VALUES ($1::jsonb, $2)
        RETURNING id, content, status, created_at`,
-      [text, false]
+      [text, statusToSave]
     );
 
     res.status(201).json({
       id: result.rows[0].id,
       text: result.rows[0].content,
       status: result.rows[0].status,
-      createdAt: result.rows[0].created_at
+      createdAt: result.rows[0].created_at,
+      message: isExisting 
+        ? 'INE duplicada!' 
+        : 'Info guardada correctamente'
     });
 
   } catch (err) {
@@ -103,7 +79,6 @@ app.post('/texts', async (req, res) => {
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
-
 
 
 // DELETE - Remove all texts
