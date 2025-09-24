@@ -44,12 +44,16 @@ app.post('/texts', async (req, res) => {
   }
 
   try {
-    // Check if a scan with same name + phone exists
+    // Check if a scan with same phone OR same name+seccion+colonia exists
     const existing = await pool.query(
       `SELECT id FROM texts
-       WHERE content->>'nombre' = $1
-         AND content->>'telefono' = $2`,
-      [text.nombre, text.telefono]
+       WHERE content->>'telefono' = $1
+          OR (
+            content->>'nombre' = $2
+            AND content->>'seccion' = $3
+            AND content->>'colonia' = $4
+          )`,
+      [text.telefono, text.nombre, text.seccion, text.colonia]
     );
 
     const isExisting = existing.rows.length > 0;
@@ -81,9 +85,6 @@ app.post('/texts', async (req, res) => {
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
-
-
-
 
 // DELETE - Remove all texts
 app.delete('/texts', async (req, res) => {
