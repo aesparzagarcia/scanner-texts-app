@@ -54,9 +54,10 @@ app.post('/texts', async (req, res) => {
     );
 
     const isExisting = existing.rows.length > 0;
-    const statusToSave = isExisting ? false : true; // true = active, false = inactive
+    // New scans are active, duplicates are inactive
+    const statusToSave = !isExisting; // true if not existing, false if exists
 
-    // Insert the new scan
+    // Insert the scan
     const result = await pool.query(
       `INSERT INTO texts (content, status)
        VALUES ($1::jsonb, $2)
@@ -79,6 +80,7 @@ app.post('/texts', async (req, res) => {
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
+
 
 
 // DELETE - Remove all texts
