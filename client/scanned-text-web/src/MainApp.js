@@ -1,57 +1,96 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
 function MainApp() {
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterSection, setFilterSection] = useState('');
+  const [filterColony, setFilterColony] = useState('');
+  const [filteredTexts, setFilteredTexts] = useState([]);
+  const [showClearButton, setShowClearButton] = useState(false);
 
-  const [filterSection, setFilterSection] = useState("");
-  const [filterColony, setFilterColony] = useState("");
-  const [filterDuplicated, setFilterDuplicated] = useState("all"); 
-  // "all" | "duplicated" | "notDuplicated"
-
+  // Fetch texts from backend
   useEffect(() => {
-    fetch("https://scanner-texts-app.onrender.com/texts")
-      .then((res) => res.json())
-      .then((data) => {
+    setLoading(true);
+    fetch('https://scanner-texts-app.onrender.com/texts')
+      .then(res => res.json())
+      .then(data => {
         setTexts(data);
+        setFilteredTexts(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  const handleClearFilter = () => {
-    setFilterSection("");
-    setFilterColony("");
-    setFilterDuplicated("all");
-  };
-
-  const filteredTexts = texts.filter(({ text, duplicated }) => {
+  // Filter by section & colony
+  const handleFilter = () => {
     const sectionTerm = filterSection.trim().toLowerCase();
     const colonyTerm = filterColony.trim().toLowerCase();
 
-    const matchesSection =
-      !sectionTerm ||
-      (text.seccion && text.seccion.toLowerCase().includes(sectionTerm));
+    const filtered = texts.filter(({ text }) => {
+      const matchesSection =
+        !sectionTerm || (text.seccion && text.seccion.toLowerCase().includes(sectionTerm));
+      const matchesColony =
+        !colonyTerm || (text.colonia && text.colonia.toLowerCase().includes(colonyTerm));
+      return matchesSection && matchesColony;
+    });
 
-    const matchesColony =
-      !colonyTerm ||
-      (text.colonia && text.colonia.toLowerCase().includes(colonyTerm));
+    setFilteredTexts(filtered);
+  };
 
-    let matchesDuplicated = true;
-    if (filterDuplicated === "duplicated") {
-      matchesDuplicated = duplicated === true;
-    } else if (filterDuplicated === "notDuplicated") {
-      matchesDuplicated = duplicated === false;
-    }
+  // Show only duplicated
+  const showDuplicated = () => {
+    const dup = texts.filter(({ duplicated }) => duplicated === true);
+    setFilteredTexts(dup);
+  };
 
-    return matchesSection && matchesColony && matchesDuplicated;
-  });
+  // Show only non duplicated
+  const showNotDuplicated = () => {
+    const nonDup = texts.filter(({ duplicated }) => duplicated === false);
+    setFilteredTexts(nonDup);
+  };
+
+  const handleClearFilter = () => {
+    setFilterSection('');
+    setFilterColony('');
+    setFilteredTexts(texts);
+  };
+
+  const handleClearDatabase = () => {
+    if (!window.confirm('Are you sure you want to clear the database? This action cannot be undone.')) return;
+    fetch(`https://scanner-texts-app.onrender.com/texts`, { method: 'DELETE' })
+      .then(res => {
+        if (res.ok) {
+          setTexts([]);
+          setFilteredTexts([]);
+          alert('Database cleared!');
+        } else {
+          alert('Failed to clear database');
+        }
+      })
+      .catch(() => alert('Error clearing database'));
+  };
+
+  const toggleStatus = (id, newStatus) => {
+    fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+      .then(res => res.json())
+      .then(updatedText => {
+        setTexts(prev =>
+          prev.map(t => (t.id === updatedText.id ? { ...t, status: updatedText.status } : t))
+        );
+        setFilteredTexts(prev =>
+          prev.map(t => (t.id === updatedText.id ? { ...t, status: updatedText.status } : t))
+        );
+      })
+      .catch(() => alert('Error updating status'));
+  };
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Lista de Escaneos</h2>
-
-      {/* 🔍 Filters */}
+      <h1>Info scaneada</h1>
       <div style={{ marginBottom: 20 }}>
         <input
           type="text"
@@ -67,103 +106,74 @@ function MainApp() {
           onChange={(e) => setFilterColony(e.target.value)}
           style={{ marginRight: 8 }}
         />
-
-        <button
-          onClick={handleClearFilter}
-          style={{ marginRight: 16 }}
-        >
-          Limpiar filtros
-        </button>
-
-        {/* 🔘 Duplicated filters */}
-        <button
-          onClick={() => setFilterDuplicated("all")}
-          style={{
-            marginRight: 8,
-            backgroundColor: filterDuplicated === "all" ? "#007bff" : "#ccc",
-            color: "white",
-            padding: "6px 12px",
-            border: "none",
-            borderRadius: "4px",
-          }}
-        >
-          Todos
-        </button>
-        <button
-          onClick={() => setFilterDuplicated("duplicated")}
-          style={{
-            marginRight: 8,
-            backgroundColor: filterDuplicated === "duplicated" ? "#28a745" : "#ccc",
-            color: "white",
-            padding: "6px 12px",
-            border: "none",
-            borderRadius: "4px",
-          }}
-        >
-          Duplicados
-        </button>
-        <button
-          onClick={() => setFilterDuplicated("notDuplicated")}
-          style={{
-            backgroundColor: filterDuplicated === "notDuplicated" ? "#dc3545" : "#ccc",
-            color: "white",
-            padding: "6px 12px",
-            border: "none",
-            borderRadius: "4px",
-          }}
-        >
-          No Duplicados
-        </button>
+        <button onClick={handleFilter} style={{ marginRight: 8 }}>Filtrar</button>
+        <button onClick={handleClearFilter} style={{ marginRight: 8 }}>Limpiar filtro</button>
+        <button onClick={showDuplicated} style={{ marginRight: 8 }}>Duplicados</button>
+        <button onClick={showNotDuplicated} style={{ marginRight: 16 }}>No duplicados</button>
+        {showClearButton && (
+          <button
+            onClick={handleClearDatabase}
+            style={{ backgroundColor: 'red', color: 'white' }}
+          >
+            Clear Database
+          </button>
+        )}
       </div>
 
-      {/* 📊 Results counter */}
-      <p>
-        Mostrando <strong>{filteredTexts.length}</strong> de{" "}
-        {texts.length} registros
-      </p>
+      {loading && <p>⏳ Cargando datos...</p>}
+      {!loading && filteredTexts.length === 0 && <p>No texts found.</p>}
 
-      {/* 🕑 Loading */}
-      {loading && <p>Cargando...</p>}
-      {!loading && filteredTexts.length === 0 && <p>No se encontraron registros.</p>}
-
-      {/* 📋 Table */}
-      <table
-        border="1"
-        cellPadding="8"
-        cellSpacing="0"
-        style={{ width: "100%", borderCollapse: "collapse" }}
-      >
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Domicilio</th>
-            <th>Teléfono</th>
-            <th>Sección</th>
-            <th>Colonia</th>
-            <th>Petición</th>
-            <th>Estado</th>
-            <th>Referencia</th>
-            <th>Creado por</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredTexts.map(({ id, text, status }) => (
-            <tr key={id}>
-              <td>{text.nombre || "N/A"}</td>
-              <td>{text.domicilio || "N/A"}</td>
-              <td>{text.telefono || "N/A"}</td>
-              <td>{text.seccion || "N/A"}</td>
-              <td>{text.colonia || "N/A"}</td>
-              <td>{text.peticion || "N/A"}</td>
-              <td style={{ color: status ? "green" : "red" }}>
-                {status ? "Resuelto" : "Sin resolver"}
-              </td>
-              <td>{text.referencia || "N/A"}</td>
-              <td>{text.creadopor || "N/A"}</td>
+      {!loading && filteredTexts.length > 0 && (
+        <table
+          border="1"
+          cellPadding="8"
+          cellSpacing="0"
+          style={{ width: '100%', borderCollapse: 'collapse' }}
+        >
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Domicilio</th>
+              <th>Teléfono</th>
+              <th>Sección</th>
+              <th>Colonia</th>
+              <th>Petición</th>
+              <th>Estatus</th>
+              <th>Referencia</th>
+              <th>Creado por</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredTexts.map(({ id, text, status }) => (
+              <tr key={id}>
+                <td>{text.nombre || 'N/A'}</td>
+                <td>{text.domicilio || 'N/A'}</td>
+                <td>{text.telefono || 'N/A'}</td>
+                <td>{text.seccion || 'N/A'}</td>
+                <td>{text.colonia || 'N/A'}</td>
+                <td>{text.peticion || 'N/A'}</td>
+                <td>
+                  <button
+                    onClick={() => toggleStatus(id, !status)}
+                    style={{
+                      backgroundColor: status ? 'green' : 'red',
+                      color: 'white',
+                      padding: '4px 8px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {status ? 'Completado' : 'Pendiente'}
+                  </button>
+                </td>
+                <td>{text.referencia || 'N/A'}</td>
+                <td>{text.creadopor || 'N/A'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
