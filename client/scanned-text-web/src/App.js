@@ -33,7 +33,7 @@ function App() {
         color: 'white',
         boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>📌 Dashboard</h2>
+        <h2 style={{ margin: 0, fontSize: '1.25rem' }}></h2>
         <div>
           <span style={{ marginRight: 16 }}>Bienvenido, <strong>{user.email}</strong></span>
           <button

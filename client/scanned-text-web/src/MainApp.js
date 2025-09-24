@@ -27,9 +27,9 @@ function MainApp() {
 
     const filtered = texts.filter(({ text, duplicated }) => {
       const matchesSection =
-        !sectionTerm || (text.seccion && text.seccion.toLowerCase().includes(sectionTerm));
+        !sectionTerm || (text.seccion && text.seccion.toLowerCase().startsWith(sectionTerm));
       const matchesColony =
-        !colonyTerm || (text.colonia && text.colonia.toLowerCase().includes(colonyTerm));
+        !colonyTerm || (text.colonia && text.colonia.toLowerCase().startsWith(colonyTerm));
       const matchesDuplicated =
         filterDuplicated === null || duplicated === filterDuplicated;
 
@@ -39,13 +39,13 @@ function MainApp() {
     setFilteredTexts(filtered);
   };
 
-  const handleFilter = () => applyFilters();
   const handleClearFilter = () => {
     setFilterSection('');
     setFilterColony('');
     setFilterDuplicated(null);
     setFilteredTexts(texts);
   };
+
   const toggleStatus = (id, newStatus) => {
     fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
       method: 'PATCH',
@@ -64,14 +64,15 @@ function MainApp() {
       .catch(() => alert('Error updating status'));
   };
 
-  useEffect(() => applyFilters(), [filterDuplicated, texts]);
+  // Reapply filters whenever texts, duplicated filter, or inputs change
+  useEffect(() => {
+    applyFilters();
+  }, [texts, filterDuplicated, filterSection, filterColony]);
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
-      {/* Title aligned left */}
       <h1 style={{ marginBottom: 20, textAlign: 'left' }}>📋 INES Escaneadas</h1>
 
-      {/* Filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20, alignItems: 'center' }}>
         <input
           type="text"
@@ -87,12 +88,6 @@ function MainApp() {
           onChange={e => setFilterColony(e.target.value)}
           style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', width: 120 }}
         />
-        <button
-          onClick={handleFilter}
-          style={{ padding: '8px 16px', borderRadius: 5, backgroundColor: '#007BFF', color: 'white', border: 'none', cursor: 'pointer' }}
-        >
-          Filtrar
-        </button>
         <button
           onClick={handleClearFilter}
           style={{ padding: '8px 16px', borderRadius: 5, backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer' }}
@@ -128,22 +123,12 @@ function MainApp() {
         </button>
       </div>
 
-      {/* Loading */}
       {loading && <p style={{ textAlign: 'center' }}>⏳ Cargando datos...</p>}
-
-      {/* No data */}
       {!loading && filteredTexts.length === 0 && <p style={{ textAlign: 'center' }}>No texts found.</p>}
 
-      {/* Table */}
       {!loading && filteredTexts.length > 0 && (
         <div style={{ overflowX: 'auto' }}>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              boxShadow: '0 0 5px rgba(0,0,0,0.1)'
-            }}
-          >
+          <table style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 0 5px rgba(0,0,0,0.1)' }}>
             <thead style={{ backgroundColor: '#f1f1f1' }}>
               <tr>
                 {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(header => (
@@ -153,8 +138,8 @@ function MainApp() {
             </thead>
             <tbody>
               {filteredTexts.map(({ id, text, status }) => (
-                <tr key={id} style={{ borderBottom: '1px solid #eee', transition: 'background 0.2s' }} 
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9f9f9'} 
+                <tr key={id} style={{ borderBottom: '1px solid #eee', transition: 'background 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9f9f9'}
                     onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
                   <td style={{ padding: 8 }}>{text.nombre || 'N/A'}</td>
                   <td style={{ padding: 8 }}>{text.domicilio || 'N/A'}</td>
