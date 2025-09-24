@@ -76,8 +76,8 @@ app.post('/texts', async (req, res) => {
       duplicated: result.rows[0].duplicated,
       createdAt: result.rows[0].created_at,
       message: isExisting 
-        ? 'INE duplicada!' 
-        : 'Info guardada correctamente'
+        ? '¡Este registro ya existe!' 
+        : '¡Registro guardado correctamente!'
     });
 
   } catch (err) {
