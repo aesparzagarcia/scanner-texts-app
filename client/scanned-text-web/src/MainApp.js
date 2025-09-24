@@ -27,9 +27,9 @@ function MainApp() {
 
     const filtered = texts.filter(({ text, duplicated }) => {
       const matchesSection =
-        !sectionTerm || (text.seccion && text.seccion.toLowerCase().startsWith(sectionTerm));
+        !sectionTerm || (text.seccion && text.seccion.toLowerCase().includes(sectionTerm));
       const matchesColony =
-        !colonyTerm || (text.colonia && text.colonia.toLowerCase().startsWith(colonyTerm));
+        !colonyTerm || (text.colonia && text.colonia.toLowerCase().includes(colonyTerm));
       const matchesDuplicated =
         filterDuplicated === null || duplicated === filterDuplicated;
 
@@ -39,13 +39,13 @@ function MainApp() {
     setFilteredTexts(filtered);
   };
 
+  const handleFilter = () => applyFilters();
   const handleClearFilter = () => {
     setFilterSection('');
     setFilterColony('');
     setFilterDuplicated(null);
     setFilteredTexts(texts);
   };
-
   const toggleStatus = (id, newStatus) => {
     fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
       method: 'PATCH',
@@ -64,16 +64,16 @@ function MainApp() {
       .catch(() => alert('Error updating status'));
   };
 
-  // Reapply filters whenever texts, duplicated filter, or inputs change
-  useEffect(() => {
-    applyFilters();
-  }, [texts, filterDuplicated, filterSection, filterColony]);
+  useEffect(() => applyFilters(), [filterDuplicated, texts]);
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
+      {/* Title aligned left */}
       <h1 style={{ marginBottom: 20, textAlign: 'left' }}>📋 INES Escaneadas</h1>
 
+      {/* Filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20, alignItems: 'center' }}>
+        {/* Inputs */}
         <input
           type="text"
           placeholder="Sección"
@@ -86,27 +86,14 @@ function MainApp() {
           placeholder="Colonia"
           value={filterColony}
           onChange={e => setFilterColony(e.target.value)}
-          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 100, fontSize: 14 }}
+          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 150, fontSize: 14 }}
         />
-        <button
-          onClick={handleClearFilter}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 4,
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 14
-          }}
-        >
-          Limpiar
-        </button>
 
+        {/* Buttons */}
         <button
           onClick={() => setFilterDuplicated(true)}
           style={{
-            padding: '4px 10px',
+            padding: '4px 8px',
             borderRadius: 4,
             backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
             color: filterDuplicated === true ? 'white' : '#721c24',
@@ -117,10 +104,11 @@ function MainApp() {
         >
           Duplicados
         </button>
+
         <button
           onClick={() => setFilterDuplicated(false)}
           style={{
-            padding: '4px 10px',
+            padding: '4px 8px',
             borderRadius: 4,
             backgroundColor: filterDuplicated === false ? '#28a745' : '#d4edda',
             color: filterDuplicated === false ? 'white' : '#155724',
@@ -131,14 +119,39 @@ function MainApp() {
         >
           No Duplicados
         </button>
+
+        <button
+          onClick={handleClearFilter}
+          style={{
+            padding: '4px 8px',
+            borderRadius: 4,
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 14
+          }}
+        >
+          Limpiar
+        </button>
       </div>
 
+      {/* Loading */}
       {loading && <p style={{ textAlign: 'center' }}>⏳ Cargando datos...</p>}
+
+      {/* No data */}
       {!loading && filteredTexts.length === 0 && <p style={{ textAlign: 'center' }}>No texts found.</p>}
 
+      {/* Table */}
       {!loading && filteredTexts.length > 0 && (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 0 5px rgba(0,0,0,0.1)' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              boxShadow: '0 0 5px rgba(0,0,0,0.1)'
+            }}
+          >
             <thead style={{ backgroundColor: '#f1f1f1' }}>
               <tr>
                 {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(header => (
@@ -148,8 +161,8 @@ function MainApp() {
             </thead>
             <tbody>
               {filteredTexts.map(({ id, text, status }) => (
-                <tr key={id} style={{ borderBottom: '1px solid #eee', transition: 'background 0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                <tr key={id} style={{ borderBottom: '1px solid #eee', transition: 'background 0.2s' }} 
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9f9f9'} 
                     onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
                   <td style={{ padding: 8 }}>{text.nombre || 'N/A'}</td>
                   <td style={{ padding: 8 }}>{text.domicilio || 'N/A'}</td>
@@ -163,10 +176,9 @@ function MainApp() {
                       style={{
                         backgroundColor: status ? '#28a745' : '#dc3545',
                         color: 'white',
-                        padding: '2px 6px',
+                        padding: '4px 8px',
                         border: 'none',
-                        fontSize: 12,
-                        borderRadius: 4,
+                        borderRadius: 5,
                         cursor: 'pointer'
                       }}
                     >
