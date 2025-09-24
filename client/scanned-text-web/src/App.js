@@ -22,11 +22,44 @@ function App() {
   }
 
   return (
-    <div>
-      <div style={{ padding: 10, backgroundColor: '#eee' }}>
-        Bienvenido: {user.email} <button onClick={handleLogout}>Salir</button>
-      </div>
-      <MainApp />
+    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+      {/* Header */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 24px',
+        backgroundColor: '#007BFF',
+        color: 'white',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>📌 Dashboard</h2>
+        <div>
+          <span style={{ marginRight: 16 }}>Bienvenido, <strong>{user.email}</strong></span>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '6px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: 5,
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#c82333'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#dc3545'}
+          >
+            Salir
+          </button>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main style={{ padding: 20 }}>
+        <MainApp />
+      </main>
     </div>
   );
 }

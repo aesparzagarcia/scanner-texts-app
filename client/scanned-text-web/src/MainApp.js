@@ -68,23 +68,24 @@ function MainApp() {
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: 20 }}>📋 Info Scaneada</h1>
+      {/* Title aligned left */}
+      <h1 style={{ marginBottom: 20, textAlign: 'left' }}>📋 INES Escaneadas</h1>
 
       {/* Filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20, alignItems: 'center' }}>
         <input
           type="text"
           placeholder="Sección"
           value={filterSection}
           onChange={e => setFilterSection(e.target.value)}
-          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', flex: 1, minWidth: 150 }}
+          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', width: 120 }}
         />
         <input
           type="text"
           placeholder="Colonia"
           value={filterColony}
           onChange={e => setFilterColony(e.target.value)}
-          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', flex: 1, minWidth: 150 }}
+          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', width: 120 }}
         />
         <button
           onClick={handleFilter}
