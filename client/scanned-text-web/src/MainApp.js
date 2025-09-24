@@ -5,10 +5,10 @@ function MainApp() {
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
   const [filterColony, setFilterColony] = useState('');
+  const [filterDuplicated, setFilterDuplicated] = useState(null); // null = all, true = only duplicated, false = only not duplicated
   const [filteredTexts, setFilteredTexts] = useState([]);
   const [showClearButton, setShowClearButton] = useState(false);
 
-  // Fetch texts from backend
   useEffect(() => {
     setLoading(true);
     fetch('https://scanner-texts-app.onrender.com/texts')
@@ -21,43 +21,39 @@ function MainApp() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Filter by section & colony
-  const handleFilter = () => {
+  const applyFilters = () => {
     const sectionTerm = filterSection.trim().toLowerCase();
     const colonyTerm = filterColony.trim().toLowerCase();
 
-    const filtered = texts.filter(({ text }) => {
+    const filtered = texts.filter(({ text, duplicated }) => {
       const matchesSection =
         !sectionTerm || (text.seccion && text.seccion.toLowerCase().includes(sectionTerm));
       const matchesColony =
         !colonyTerm || (text.colonia && text.colonia.toLowerCase().includes(colonyTerm));
-      return matchesSection && matchesColony;
+      const matchesDuplicated =
+        filterDuplicated === null || duplicated === filterDuplicated;
+
+      return matchesSection && matchesColony && matchesDuplicated;
     });
 
     setFilteredTexts(filtered);
   };
 
-  // Show only duplicated
-  const showDuplicated = () => {
-    const dup = texts.filter(({ duplicated }) => duplicated === true);
-    setFilteredTexts(dup);
-  };
-
-  // Show only non duplicated
-  const showNotDuplicated = () => {
-    const nonDup = texts.filter(({ duplicated }) => duplicated === false);
-    setFilteredTexts(nonDup);
+  const handleFilter = () => {
+    applyFilters();
   };
 
   const handleClearFilter = () => {
     setFilterSection('');
     setFilterColony('');
+    setFilterDuplicated(null);
     setFilteredTexts(texts);
   };
 
   const handleClearDatabase = () => {
     if (!window.confirm('Are you sure you want to clear the database? This action cannot be undone.')) return;
-    fetch(`https://scanner-texts-app.onrender.com/texts`, { method: 'DELETE' })
+
+    fetch('https://scanner-texts-app.onrender.com/texts', { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setTexts([]);
@@ -74,7 +70,7 @@ function MainApp() {
     fetch(`https://scanner-texts-app.onrender.com/texts/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus })
+      body: JSON.stringify({ status: newStatus }),
     })
       .then(res => res.json())
       .then(updatedText => {
@@ -88,28 +84,44 @@ function MainApp() {
       .catch(() => alert('Error updating status'));
   };
 
+  // React when duplicated filter changes
+  useEffect(() => {
+    applyFilters();
+  }, [filterDuplicated, texts]);
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Info scaneada</h1>
+
       <div style={{ marginBottom: 20 }}>
         <input
           type="text"
           placeholder="Filtrar por sección"
           value={filterSection}
-          onChange={(e) => setFilterSection(e.target.value)}
+          onChange={e => setFilterSection(e.target.value)}
           style={{ marginRight: 8 }}
         />
         <input
           type="text"
           placeholder="Filtrar por colonia"
           value={filterColony}
-          onChange={(e) => setFilterColony(e.target.value)}
+          onChange={e => setFilterColony(e.target.value)}
           style={{ marginRight: 8 }}
         />
-        <button onClick={handleFilter} style={{ marginRight: 8 }}>Filtrar</button>
-        <button onClick={handleClearFilter} style={{ marginRight: 8 }}>Limpiar filtro</button>
-        <button onClick={showDuplicated} style={{ marginRight: 8 }}>Duplicados</button>
-        <button onClick={showNotDuplicated} style={{ marginRight: 16 }}>No duplicados</button>
+        <button onClick={handleFilter} style={{ marginRight: 8 }}>
+          Filtrar
+        </button>
+        <button onClick={handleClearFilter} style={{ marginRight: 16 }}>
+          Limpiar filtro
+        </button>
+
+        <button onClick={() => setFilterDuplicated(true)} style={{ marginRight: 8 }}>
+          Duplicados
+        </button>
+        <button onClick={() => setFilterDuplicated(false)} style={{ marginRight: 8 }}>
+          No Duplicados
+        </button>
+
         {showClearButton && (
           <button
             onClick={handleClearDatabase}
@@ -161,7 +173,7 @@ function MainApp() {
                       padding: '4px 8px',
                       border: 'none',
                       borderRadius: '4px',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     {status ? 'Completado' : 'Pendiente'}
