@@ -54,9 +54,7 @@ app.post('/texts', async (req, res) => {
 
     const isExisting = existing.rows.length > 0;
 
-    // If exists → status = false, duplicated = true
-    // If not exists → status = true, duplicated = false
-    const statusToSave = !isExisting;
+    const statusToSave = false;
     const duplicatedToSave = isExisting;
 
     // Insert the scan

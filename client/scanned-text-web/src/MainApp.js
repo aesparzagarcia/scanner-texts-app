@@ -141,7 +141,7 @@ function MainApp() {
             <th>Sección</th>
             <th>Colonia</th>
             <th>Petición</th>
-            <th>Status</th>
+            <th>Estado</th>
             <th>Referencia</th>
             <th>Creado por</th>
           </tr>
@@ -156,7 +156,7 @@ function MainApp() {
               <td>{text.colonia || "N/A"}</td>
               <td>{text.peticion || "N/A"}</td>
               <td style={{ color: status ? "green" : "red" }}>
-                {status ? "Activo" : "Inactivo"}
+                {status ? "Resuelto" : "Sin resolver"}
               </td>
               <td>{text.referencia || "N/A"}</td>
               <td>{text.creadopor || "N/A"}</td>
