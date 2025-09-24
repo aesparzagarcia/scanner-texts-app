@@ -36,7 +36,6 @@ const pool = new Pool({
 })();
 
 // Routes
-
 app.post('/texts', async (req, res) => {
   const { text } = req.body; // text is an object
 
@@ -54,21 +53,25 @@ app.post('/texts', async (req, res) => {
     );
 
     const isExisting = existing.rows.length > 0;
-    // New scans are active, duplicates are inactive
-    const statusToSave = !isExisting; // true if not existing, false if exists
+
+    // If exists → status = false, duplicated = true
+    // If not exists → status = true, duplicated = false
+    const statusToSave = !isExisting;
+    const duplicatedToSave = isExisting;
 
     // Insert the scan
     const result = await pool.query(
-      `INSERT INTO texts (content, status)
-       VALUES ($1::jsonb, $2)
-       RETURNING id, content, status, created_at`,
-      [text, statusToSave]
+      `INSERT INTO texts (content, status, duplicated)
+       VALUES ($1::jsonb, $2, $3)
+       RETURNING id, content, status, duplicated, created_at`,
+      [text, statusToSave, duplicatedToSave]
     );
 
     res.status(201).json({
       id: result.rows[0].id,
       text: result.rows[0].content,
       status: result.rows[0].status,
+      duplicated: result.rows[0].duplicated,
       createdAt: result.rows[0].created_at,
       message: isExisting 
         ? 'INE duplicada!' 
@@ -80,6 +83,7 @@ app.post('/texts', async (req, res) => {
     res.status(500).json({ error: 'Failed to insert text' });
   }
 });
+
 
 
 
