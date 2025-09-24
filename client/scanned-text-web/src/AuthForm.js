@@ -3,12 +3,13 @@ import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlinePhone, AiOutlineTag } from 'react-icons/ai';
+import './AuthForm.css'; // custom CSS
 
 const InputField = ({ icon: Icon, name, type, placeholder, value, onChange, required }) => (
-  <div className="flex items-center border rounded-md mb-3 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
-    <div className="px-2 text-gray-500"><Icon /></div>
+  <div className="input-container">
+    <Icon className="input-icon" />
     <input
-      className="w-full p-2 focus:outline-none"
+      className="input-field"
       name={name}
       type={type}
       placeholder={placeholder}
@@ -31,7 +32,6 @@ const AuthForm = () => {
     e.preventDefault();
     setMessage('');
     setIsLoading(true);
-
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, form.email, form.password);
@@ -57,15 +57,10 @@ const AuthForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      <div className="bg-white shadow-xl rounded-3xl w-full max-w-md p-8">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">{isLogin ? 'Login' : 'Registrarse'}</h2>
-          <p className="text-gray-500 mt-2">
-            {isLogin ? 'Accede a tu cuenta' : 'Crea una nueva cuenta'}
-          </p>
-        </div>
-
+    <div className="auth-wrapper">
+      <div className="auth-box">
+        <h2>{isLogin ? 'Login' : 'Registrarse'}</h2>
+        <p>{isLogin ? 'Accede a tu cuenta' : 'Crea una nueva cuenta'}</p>
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <>
@@ -76,31 +71,17 @@ const AuthForm = () => {
           )}
           <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} required />
           <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl mt-4 transition-colors disabled:bg-gray-400"
-          >
+          <button type="submit" disabled={isLoading}>
             {isLoading ? 'Procesando...' : isLogin ? 'Login' : 'Registrarse'}
           </button>
         </form>
-
-        <p className="mt-4 text-center text-gray-600">
+        <p>
           {isLogin ? '¿Necesitas una cuenta?' : '¿Ya tienes una cuenta?'}{' '}
-          <span
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 hover:underline cursor-pointer font-semibold"
-          >
+          <span onClick={() => setIsLogin(!isLogin)} className="switch-link">
             {isLogin ? 'Registrarse' : 'Login'}
           </span>
         </p>
-
-        {message && (
-          <p className={`mt-3 text-center text-sm font-medium ${message.startsWith('✅') || message.startsWith('🎉') ? 'text-green-600' : 'text-red-600'}`}>
-            {message}
-          </p>
-        )}
+        {message && <p className={`message ${message.startsWith('✅') || message.startsWith('🎉') ? 'success' : 'error'}`}>{message}</p>}
       </div>
     </div>
   );
