@@ -73,24 +73,32 @@ function MainApp() {
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
       <h1 style={{ marginBottom: 20, textAlign: 'left' }}>📋 INES Escaneadas</h1>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20, alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20, alignItems: 'center' }}>
         <input
           type="text"
           placeholder="Sección"
           value={filterSection}
           onChange={e => setFilterSection(e.target.value)}
-          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', width: 120 }}
+          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 100, fontSize: 14 }}
         />
         <input
           type="text"
           placeholder="Colonia"
           value={filterColony}
           onChange={e => setFilterColony(e.target.value)}
-          style={{ padding: 8, borderRadius: 5, border: '1px solid #ccc', width: 120 }}
+          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 100, fontSize: 14 }}
         />
         <button
           onClick={handleClearFilter}
-          style={{ padding: '8px 16px', borderRadius: 5, backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer' }}
+          style={{
+            padding: '4px 10px',
+            borderRadius: 4,
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 14
+          }}
         >
           Limpiar
         </button>
@@ -98,12 +106,13 @@ function MainApp() {
         <button
           onClick={() => setFilterDuplicated(true)}
           style={{
-            padding: '8px 16px',
-            borderRadius: 5,
+            padding: '4px 10px',
+            borderRadius: 4,
             backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
             color: filterDuplicated === true ? 'white' : '#721c24',
             border: '1px solid #dc3545',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontSize: 14
           }}
         >
           Duplicados
@@ -111,12 +120,13 @@ function MainApp() {
         <button
           onClick={() => setFilterDuplicated(false)}
           style={{
-            padding: '8px 16px',
-            borderRadius: 5,
+            padding: '4px 10px',
+            borderRadius: 4,
             backgroundColor: filterDuplicated === false ? '#28a745' : '#d4edda',
             color: filterDuplicated === false ? 'white' : '#155724',
             border: '1px solid #28a745',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontSize: 14
           }}
         >
           No Duplicados
@@ -153,9 +163,10 @@ function MainApp() {
                       style={{
                         backgroundColor: status ? '#28a745' : '#dc3545',
                         color: 'white',
-                        padding: '4px 8px',
+                        padding: '2px 6px',
                         border: 'none',
-                        borderRadius: 5,
+                        fontSize: 12,
+                        borderRadius: 4,
                         cursor: 'pointer'
                       }}
                     >
