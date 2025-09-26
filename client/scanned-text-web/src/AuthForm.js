@@ -32,22 +32,8 @@ const AuthForm = () => {
     setMessage('');
     setIsLoading(true);
     try {
-      if (isLogin) {
         await signInWithEmailAndPassword(auth, form.email, form.password);
         setMessage('✅ Login successful!');
-      } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-        const uid = userCredential.user.uid;
-        await setDoc(doc(db, 'users', uid), {
-          uid,
-          name: form.name,
-          phone: form.phone,
-          email: form.email,
-          reference: form.reference,
-          createdAt: serverTimestamp()
-        });
-        setMessage('🎉 Registered successfully!');
-      }
     } catch (err) {
       setMessage(`❌ ${err.message}`);
     } finally {
