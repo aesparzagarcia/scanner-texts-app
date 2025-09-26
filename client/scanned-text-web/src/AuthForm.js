@@ -21,7 +21,6 @@ const InputField = ({ icon: Icon, name, type, placeholder, value, onChange, requ
 );
 
 const AuthForm = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', reference: '' });
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,27 +58,17 @@ const AuthForm = () => {
   return (
     <div className="auth-wrapper">
       <div className="auth-box">
-        <h2>{isLogin ? 'Login' : 'Registrarse'}</h2>
-        <p>{isLogin ? 'Accede a tu cuenta' : 'Crea una nueva cuenta'}</p>
+        <h2>{'Login'}</h2>
+        <p>{'Accede a tu cuenta'}</p>
         <form onSubmit={handleSubmit}>
-          {!isLogin && (
-            <>
-              <InputField icon={AiOutlineUser} name="name" type="text" placeholder="Nombre" value={form.name} onChange={handleChange} required />
-              <InputField icon={AiOutlinePhone} name="phone" type="tel" placeholder="Teléfono" value={form.phone} onChange={handleChange} required />
-              <InputField icon={AiOutlineTag} name="reference" type="text" placeholder="Referencia" value={form.reference} onChange={handleChange} required />
-            </>
-          )}
           <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} required />
           <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
           <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Procesando...' : isLogin ? 'Login' : 'Registrarse'}
+            {'Procesando...' 'Login'}
           </button>
         </form>
         <p>
-          {isLogin ? '¿Necesitas una cuenta?' : '¿Ya tienes una cuenta?'}{' '}
-          <span onClick={() => setIsLogin(!isLogin)} className="switch-link">
-            {isLogin ? 'Registrarse' : 'Login'}
-          </span>
+          {'¿Necesitas una cuenta? Llama al admin'}{' '}
         </p>
         {message && <p className={`message ${message.startsWith('✅') || message.startsWith('🎉') ? 'success' : 'error'}`}>{message}</p>}
       </div>
