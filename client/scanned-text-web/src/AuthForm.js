@@ -64,7 +64,7 @@ const AuthForm = () => {
           <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} required />
           <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
           <button type="submit" disabled={isLoading}>
-            {'Procesando...' 'Login'}
+            {isLoading ? 'Procesando...' : 'Login'}
           </button>
         </form>
         <p>
