@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Soporte — INEX-App</title>
+  <meta name="description" content="Página de soporte oficial de INEX. Contacto, FAQ y cómo reportar problemas." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --accent:#9b2b2b; /* rojo similar a tu branding */
+      --muted:#666;
+      --card:#fafafa;
+      --maxw:900px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    body{margin:0;background:var(--bg);color:#111;line-height:1.5}
+    header{background:linear-gradient(90deg,var(--accent),#a04242);color:#fff;padding:36px 16px}
+    .container{max-width:var(--maxw);margin:0 auto;padding:24px}
+    h1{margin:0 0 8px;font-size:28px}
+    p.lead{margin:0;font-size:15px;opacity:.95}
+    .card{background:var(--card);border-radius:12px;padding:18px;margin-top:18px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:800px){.grid{grid-template-columns:1fr 320px}}
+    .muted{color:var(--muted);font-size:14px}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
+    label{display:block;font-weight:600;margin:10px 0 6px}
+    input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e6e6;font-size:14px}
+    footer{padding:28px 16px;text-align:center;color:var(--muted);font-size:13px}
+    ul.faq{padding-left:18px}
+    code{background:#f4f4f4;padding:4px 6px;border-radius:6px;font-family:monospace}
+    .meta{font-size:13px;color:var(--muted);margin-top:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Soporte oficial — INEX-App</h1>
+      <p class="lead">¿Tienes problemas o dudas? Aquí encontrarás ayuda rápida para resolverlos y la forma de contactarnos.</p>
+    </div>
+  </header>
+
+  <main class="container" role="main">
+    <div class="grid">
+      <section>
+        <div class="card">
+          <h2>Contacto rápido</h2>
+          <p class="muted">Escribe al equipo de soporte y describenos tu problema. Responderemos lo antes posible.</p>
+
+          <p style="margin-top:12px"><strong>Email de soporte:</strong><br>
+            <a href="mailto:developer.ares.01@gmail.com?subject=Soporte%20INEX">developer.ares.01@gmail.com</a>
+          </p>
+
+          <p><strong>Horario de atención:</strong><br>
+            Lun–Vie 09:00–18:00 (UTC-6)</p>
+
+          <hr style="margin:12px 0">
+
+          <h3>Envía un reporte (rápido)</h3>
+          <p class="muted">Rellena el formulario y se abrirá tu app de correo con el contenido.</p>
+
+          <form action="mailto:soporte@tudominio.com" method="post" enctype="text/plain">
+            <label for="name">Nombre</label>
+            <input id="name" name="Nombre" placeholder="Tu nombre" required>
+
+            <label for="email">Correo</label>
+            <input id="email" name="Correo" type="email" placeholder="tu@correo.com" required>
+
+            <label for="subject">Asunto</label>
+            <input id="subject" name="Asunto" placeholder="Breve descripción del problema" required>
+
+            <label for="message">Descripción del problema</label>
+            <textarea id="message" name="Mensaje" rows="6" placeholder="¿Qué hiciste? ¿Qué esperabas que pasara? ¿Qué ocurrió en su lugar?" required></textarea>
+
+            <p class="muted" style="margin-top:8px">Opcional: adjunta una captura de pantalla directamente al enviar el correo desde tu dispositivo.</p>
+
+            <p style="margin-top:12px"><button class="btn" type="submit">Enviar reporte por correo</button></p>
+          </form>
+
+          <p class="meta">
+            Recomendamos incluir:<br>
+            • Versión de la app (Ajustes → Acerca de → Versión).<br>
+            • Modelo del dispositivo y versión de iOS (Ajustes → General → Información).<br>
+            • Pasos exactos para reproducir el problema.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Preguntas frecuentes (FAQ)</h2>
+          <ul class="faq">
+            <li><strong>¿Cómo escaneo un documento?</strong><br>
+                Abre la app → Toca el botón de la derecha en la parte inferior → si no haz otrogado los permisos, otórgalos→ posiciona la cámara sobre el documuento → captura → recorta y guarda los datos.</li>
+            <li><strong>No reconoce texto correctamente.</strong><br>
+                Intenta mejorar la iluminación, enfocar la cámara y usar un fondo contrastado.</li>
+            <li><strong>¿Dónde se guardan mis escaneos?</strong><br>
+                Se quedarán guardados en una base de datos.</li>
+            <li><strong>¿La app necesita internet?</strong><br>
+                Las funciones de OCR básicas funcionan offline; algunas mejoras (sincronización, OCR en la nube) requieren conexión.</li>
+          </ul>
+        </div>
+
+      </section>
+
+      <aside>
+        <div class="card">
+          <h3>Reportar un fallo (ideal)</h3>
+          <p class="muted">Cuando reportes un fallo, incluye estos datos para ayudarnos:</p>
+          <ol style="padding-left:18px">
+            <li>Versión de la app (por ejemplo <code>1.0.1 (1)</code>).</li>
+            <li>Modelo del télefono que se está usando</li>
+            <li>Descripción paso a paso para reproducir el error.</li>
+            <li>Capturas de pantalla .</li>
+            <li>Si procede, logs o mensajes de error.</li>
+          </ol>
+          <p class="muted">Con esta información podemos reproducir el problema más rápido y darte una solución.</p>
+        </div>
+
+        <div class="card">
+          <h3>Recursos útiles</h3>
+          <p><a href="/privacy.html">Política de privacidad</a></p>
+          <p><a href="/terms.html">Términos y condiciones</a></p>
+          <p><a href="https://support.apple.com/">Soporte de Apple</a></p>
+        </div>
+
+        <div class="card">
+          <h3>Contacto alternativo</h3>
+          <p class="muted">Teléfono (opcional):</p>
+          <p><a href="tel:+523335783973">+52 333 578 3973</a></p>
+          <p class="muted">Horario de respuesta por correo: 24–48 horas hábiles.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="muted">© <span id="year"></span> INEX-App. <a href="/privacy.html">Política de privacidad</a> • <a href="/terms.html">Términos</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // Rellena año dinámicamente
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
