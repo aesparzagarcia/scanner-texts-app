@@ -23,7 +23,7 @@ function MainApp() {
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Registration form state
+  // Registration form state (leader-only)
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', reference: '' });
   const [regMessage, setRegMessage] = useState('');
   const [regLoading, setRegLoading] = useState(false);
@@ -56,11 +56,11 @@ function MainApp() {
         phone: form.phone,
         email: form.email,
         reference: form.reference,
-        is_leader: false, // only admins can set true
+        is_leader: false, // leaders can later promote
         createdAt: serverTimestamp()
       });
 
-      setRegMessage('🎉 Registered successfully!');
+      setRegMessage('🎉 Nuevo usuario registrado con éxito');
       setForm({ name: '', phone: '', email: '', password: '', reference: '' });
     } catch (err) {
       setRegMessage(`❌ ${err.message}`);
@@ -70,55 +70,58 @@ function MainApp() {
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
-      <h1>📋 INES Escaneadas</h1>
+    <div className="auth-wrapper">
+      <div className="auth-box">
+        <h2>📋 INES Escaneadas</h2>
 
-      {/* Leader Registration Form */}
-      <div style={{ marginBottom: 30, border: '1px solid #ccc', padding: 15, borderRadius: 6, maxWidth: 400 }}>
-        <h3>➕ Registrar nuevo usuario</h3>
-        <form onSubmit={handleRegister}>
-          <InputField icon={AiOutlineUser} name="name" type="text" placeholder="Nombre" value={form.name} onChange={handleFormChange} required />
-          <InputField icon={AiOutlinePhone} name="phone" type="tel" placeholder="Teléfono" value={form.phone} onChange={handleFormChange} required />
-          <InputField icon={AiOutlineTag} name="reference" type="text" placeholder="Referencia" value={form.reference} onChange={handleFormChange} required />
-          <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleFormChange} required />
-          <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleFormChange} required />
-          <button type="submit" disabled={regLoading} style={{ marginTop: 10 }}>
-            {regLoading ? 'Procesando...' : 'Registrar'}
-          </button>
-        </form>
-        {regMessage && <p style={{ marginTop: 10 }}>{regMessage}</p>}
-      </div>
+        {/* ➕ Leader-only Registration Form */}
+        <div style={{ marginBottom: 25 }}>
+          <h3>Registrar nuevo usuario</h3>
+          <form onSubmit={handleRegister}>
+            <InputField icon={AiOutlineUser} name="name" type="text" placeholder="Nombre" value={form.name} onChange={handleFormChange} required />
+            <InputField icon={AiOutlinePhone} name="phone" type="tel" placeholder="Teléfono" value={form.phone} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineTag} name="reference" type="text" placeholder="Referencia" value={form.reference} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleFormChange} required />
+            <button type="submit" disabled={regLoading}>
+              {regLoading ? 'Procesando...' : 'Registrar'}
+            </button>
+          </form>
+          {regMessage && <p className={`message ${regMessage.startsWith('🎉') ? 'success' : 'error'}`}>{regMessage}</p>}
+        </div>
 
-      {/* Existing texts table (simplified) */}
-      {loading && <p>⏳ Cargando datos...</p>}
-      {!loading && texts.length === 0 && <p>No texts found.</p>}
-      {!loading && texts.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(h => <th key={h} style={{ padding: 8 }}>{h}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {texts.map(({ id, text, status }) => (
-              <tr key={id}>
-                <td>{text.nombre}</td>
-                <td>{text.domicilio}</td>
-                <td>{text.telefono}</td>
-                <td>{text.seccion}</td>
-                <td>{text.colonia}</td>
-                <td>{text.peticion}</td>
-                <td>{status ? 'Completado' : 'Pendiente'}</td>
-                <td>{text.referencia}</td>
-                <td>{text.creadopor}</td>
+        {/* Existing table */}
+        {loading && <p>⏳ Cargando datos...</p>}
+        {!loading && texts.length === 0 && <p>No se encontraron registros.</p>}
+        {!loading && texts.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(h => (
+                  <th key={h}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {texts.map(({ id, text, status }) => (
+                <tr key={id}>
+                  <td>{text.nombre}</td>
+                  <td>{text.domicilio}</td>
+                  <td>{text.telefono}</td>
+                  <td>{text.seccion}</td>
+                  <td>{text.colonia}</td>
+                  <td>{text.peticion}</td>
+                  <td>{status ? 'Completado' : 'Pendiente'}</td>
+                  <td>{text.referencia}</td>
+                  <td>{text.creadopor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
 
 export default MainApp;
-
