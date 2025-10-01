@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { auth, db } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlinePhone, AiOutlineTag } from 'react-icons/ai';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import './AuthForm.css'; // custom CSS
 
 const InputField = ({ icon: Icon, name, type, placeholder, value, onChange, required }) => (
@@ -21,7 +21,7 @@ const InputField = ({ icon: Icon, name, type, placeholder, value, onChange, requ
 );
 
 const AuthForm = () => {
-  const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', reference: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,9 +31,22 @@ const AuthForm = () => {
     e.preventDefault();
     setMessage('');
     setIsLoading(true);
+
     try {
-        await signInWithEmailAndPassword(auth, form.email, form.password);
-        setMessage('✅ Login successful!');
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      const uid = userCredential.user.uid;
+
+      // Check if user is leader
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      const userData = userDoc.data();
+
+      if (!userData?.is_leader) {
+        await signOut(auth);
+        setMessage('❌ No tienes permisos para acceder.');
+        return;
+      }
+
+      setMessage('✅ Login successful!');
     } catch (err) {
       setMessage(`❌ ${err.message}`);
     } finally {
@@ -44,19 +57,37 @@ const AuthForm = () => {
   return (
     <div className="auth-wrapper">
       <div className="auth-box">
-        <h2>{'Login'}</h2>
-        <p>{'Accede a tu cuenta'}</p>
+        <h2>Login</h2>
+        <p>Accede a tu cuenta</p>
         <form onSubmit={handleSubmit}>
-          <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} required />
-          <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
+          <InputField
+            icon={AiOutlineMail}
+            name="email"
+            type="email"
+            placeholder="Correo"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+          <InputField
+            icon={AiOutlineLock}
+            name="password"
+            type="password"
+            placeholder="Contraseña"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
           <button type="submit" disabled={isLoading}>
             {isLoading ? 'Procesando...' : 'Login'}
           </button>
         </form>
-        <p>
-          {'¿Necesitas una cuenta? Llama al admin'}{' '}
-        </p>
-        {message && <p className={`message ${message.startsWith('✅') || message.startsWith('🎉') ? 'success' : 'error'}`}>{message}</p>}
+        <p>¿Necesitas una cuenta? Llama al admin</p>
+        {message && (
+          <p className={`message ${message.startsWith('✅') || message.startsWith('🎉') ? 'success' : 'error'}`}>
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

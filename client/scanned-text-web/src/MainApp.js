@@ -1,6 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { auth, db } from './firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlinePhone, AiOutlineTag } from "react-icons/ai";
+import "./AuthForm.css"; // ✅ use same theme as AuthForm
+
+function InputField({ icon: Icon, name, type, placeholder, value, onChange, required }) {
+  return (
+    <div className="input-container">
+      <Icon className="input-icon" />
+      <input
+        className="input-field"
+        name={name}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required={required}
+      />
+    </div>
+  );
+}
 
 function MainApp() {
+  // --- your existing state ---
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
@@ -9,7 +32,12 @@ function MainApp() {
   const [filteredTexts, setFilteredTexts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 10; // ✅ show 10 per page
+  const itemsPerPage = 10;
+
+  // --- new register state ---
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", reference: "" });
+  const [regMessage, setRegMessage] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -39,7 +67,7 @@ function MainApp() {
     });
 
     setFilteredTexts(filtered);
-    setCurrentPage(1); // reset page when filters change
+    setCurrentPage(1);
   };
 
   const handleClearFilter = () => {
@@ -70,12 +98,42 @@ function MainApp() {
 
   useEffect(() => applyFilters(), [filterDuplicated, texts]);
 
-  // ✅ pagination logic
+  // pagination
   const totalItems = filteredTexts.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const currentItems = filteredTexts.slice(startIndex, endIndex);
+
+  // --- register handlers ---
+  const handleFormChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setRegMessage("");
+    setRegLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      const uid = userCredential.user.uid;
+
+      await setDoc(doc(db, "users", uid), {
+        uid,
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+        reference: form.reference,
+        is_leader: false, // ✅ leaders create normal users
+        createdAt: serverTimestamp(),
+      });
+
+      setRegMessage("🎉 Usuario registrado con éxito");
+      setForm({ name: "", phone: "", email: "", password: "", reference: "" });
+    } catch (err) {
+      setRegMessage(`❌ ${err.message}`);
+    } finally {
+      setRegLoading(false);
+    }
+  };
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
@@ -83,63 +141,25 @@ function MainApp() {
 
       {/* Filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20, alignItems: 'center' }}>
-        <input
-          type="text"
-          placeholder="Sección"
-          value={filterSection}
+        <input type="text" placeholder="Sección" value={filterSection}
           onChange={e => setFilterSection(e.target.value)}
-          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 100, fontSize: 14 }}
-        />
-        <input
-          type="text"
-          placeholder="Colonia"
-          value={filterColony}
+          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 100, fontSize: 14 }} />
+        <input type="text" placeholder="Colonia" value={filterColony}
           onChange={e => setFilterColony(e.target.value)}
-          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 150, fontSize: 14 }}
-        />
+          style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 150, fontSize: 14 }} />
 
-        <button
-          onClick={() => setFilterDuplicated(true)}
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
-            color: filterDuplicated === true ? 'white' : '#721c24',
-            border: '1px solid #dc3545',
-            cursor: 'pointer',
-            fontSize: 14
-          }}
-        >
+        <button onClick={() => setFilterDuplicated(true)}
+          style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
+                   color: filterDuplicated === true ? 'white' : '#721c24', border: '1px solid #dc3545', cursor: 'pointer', fontSize: 14 }}>
           Duplicados
         </button>
-
-        <button
-          onClick={() => setFilterDuplicated(false)}
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            backgroundColor: filterDuplicated === false ? '#28a745' : '#d4edda',
-            color: filterDuplicated === false ? 'white' : '#155724',
-            border: '1px solid #28a745',
-            cursor: 'pointer',
-            fontSize: 14
-          }}
-        >
+        <button onClick={() => setFilterDuplicated(false)}
+          style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: filterDuplicated === false ? '#28a745' : '#d4edda',
+                   color: filterDuplicated === false ? 'white' : '#155724', border: '1px solid #28a745', cursor: 'pointer', fontSize: 14 }}>
           No Duplicados
         </button>
-
-        <button
-          onClick={handleClearFilter}
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 14
-          }}
-        >
+        <button onClick={handleClearFilter}
+          style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer', fontSize: 14 }}>
           Limpiar
         </button>
       </div>
@@ -176,17 +196,9 @@ function MainApp() {
                     <td style={{ padding: 8 }}>{text.colonia || 'N/A'}</td>
                     <td style={{ padding: 8 }}>{text.peticion || 'N/A'}</td>
                     <td style={{ padding: 8 }}>
-                      <button
-                        onClick={() => toggleStatus(id, !status)}
-                        style={{
-                          backgroundColor: status ? '#28a745' : '#dc3545',
-                          color: 'white',
-                          padding: '4px 8px',
-                          border: 'none',
-                          borderRadius: 5,
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button onClick={() => toggleStatus(id, !status)}
+                        style={{ backgroundColor: status ? '#28a745' : '#dc3545', color: 'white',
+                                 padding: '4px 8px', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
                         {status ? 'Completado' : 'Pendiente'}
                       </button>
                     </td>
@@ -200,24 +212,43 @@ function MainApp() {
 
           {/* Pagination controls */}
           <div style={{ marginTop: 15, display: 'flex', justifyContent: 'center', gap: 8 }}>
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
-            >
+              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>
               ⬅️ Anterior
             </button>
             <span style={{ alignSelf: 'center' }}>Página {currentPage} de {totalPages}</span>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
-            >
+              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>
               Siguiente ➡️
             </button>
           </div>
         </>
       )}
+
+      {/* --- New User Registration for Leaders --- */}
+      <div className="auth-wrapper" style={{ marginTop: 40 }}>
+        <div className="auth-box">
+          <h2>Registrar nuevo usuario</h2>
+          <form onSubmit={handleRegister}>
+            <InputField icon={AiOutlineUser} name="name" type="text" placeholder="Nombre"
+                        value={form.name} onChange={handleFormChange} required />
+            <InputField icon={AiOutlinePhone} name="phone" type="tel" placeholder="Teléfono"
+                        value={form.phone} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineTag} name="reference" type="text" placeholder="Referencia"
+                        value={form.reference} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineMail} name="email" type="email" placeholder="Correo"
+                        value={form.email} onChange={handleFormChange} required />
+            <InputField icon={AiOutlineLock} name="password" type="password" placeholder="Contraseña"
+                        value={form.password} onChange={handleFormChange} required />
+            <button type="submit" disabled={regLoading}>
+              {regLoading ? "Procesando..." : "Registrar"}
+            </button>
+          </form>
+          {regMessage && <p className={`message ${regMessage.startsWith("🎉") ? "success" : "error"}`}>{regMessage}</p>}
+        </div>
+      </div>
     </div>
   );
 }
