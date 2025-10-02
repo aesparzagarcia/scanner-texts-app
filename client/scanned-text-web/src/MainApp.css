@@ -3,6 +3,8 @@
 .main-app {
   padding: 20px;
   font-family: Arial, sans-serif;
+  position: relative;
+  min-height: 100vh;
 }
 
 /* Headings */
@@ -21,6 +23,9 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s ease;
+  width: auto;            /* 👈 fix: not full width */
+  min-width: 120px;       /* 👈 small consistent size */
+  text-align: center;
 }
 
 .main-btn.primary {
@@ -39,6 +44,29 @@
 
 .main-btn.secondary:hover {
   background-color: #5a6268;
+}
+
+/* Floating Action Button (FAB) */
+.fab-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background 0.2s ease;
+  z-index: 2000;
+}
+
+.fab-btn:hover {
+  background-color: #0056b3;
 }
 
 /* Modal overlay */
@@ -61,6 +89,7 @@
   padding: 20px;
   border-radius: 10px;
   width: 400px;
+  max-width: 90%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
@@ -70,14 +99,15 @@
   font-size: 18px;
 }
 
-/* Registration form inputs */
+/* Inputs */
 .modal-box form .input-container {
   margin-bottom: 12px;
 }
 
+/* Only the Register button inside form is full width */
 .modal-box form button {
-  margin-top: 10px;
   width: 100%;
+  margin-top: 10px;
 }
 
 .message.success {

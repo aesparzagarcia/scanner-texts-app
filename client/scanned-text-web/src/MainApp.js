@@ -257,22 +257,12 @@ function MainApp() {
       )}
 
       {/* --- Button to open registration popup --- */}
-      <div style={{ marginTop: 40, textAlign: 'center' }}>
-        <button
-          onClick={() => setShowRegister(true)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: 14,
-          }}
-        >
-          ➕ Registrar nuevo usuario
-        </button>
-      </div>
+      <button
+        onClick={() => setShowRegister(true)}
+        className="fab-btn"
+        title="Registrar nuevo usuario">
+        +
+      </button>
 
       {/* --- Registration Modal --- */}
       {showRegister && (
