@@ -9,7 +9,7 @@ import {
   AiOutlinePhone,
   AiOutlineTag,
 } from 'react-icons/ai';
-import './AuthForm.css'; // ✅ use same theme
+import './MainApp.css'; // ✅ use same theme
 
 function InputField({ icon: Icon, name, type, placeholder, value, onChange, required }) {
   return (
