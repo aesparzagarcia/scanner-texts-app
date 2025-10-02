@@ -28,6 +28,7 @@ function InputField({ icon: Icon, name, type, placeholder, value, onChange, requ
   );
 }
 
+
 function MainApp() {
   // --- texts state ---
   const [texts, setTexts] = useState([]);
