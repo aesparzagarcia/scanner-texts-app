@@ -208,7 +208,7 @@ function MainApp() {
             <table style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 0 5px rgba(0,0,0,0.1)' }}>
               <thead style={{ backgroundColor: '#f1f1f1' }}>
                 <tr>
-                  {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Estatus', 'Referencia', 'Creado por'].map(header => (
+                  {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Clave de Elector', 'Estatus', 'Referencia', 'Creado por'].map(header => (
                     <th key={header} style={{ padding: 10, textAlign: 'left', borderBottom: '2px solid #ccc' }}>{header}</th>
                   ))}
                 </tr>
@@ -224,6 +224,7 @@ function MainApp() {
                     <td style={{ padding: 8 }}>{text.seccion || 'N/A'}</td>
                     <td style={{ padding: 8 }}>{text.colonia || 'N/A'}</td>
                     <td style={{ padding: 8 }}>{text.peticion || 'N/A'}</td>
+                    <td style={{ padding: 8 }}>{text.clave_elector || 'N/A'}</td>
                     <td style={{ padding: 8 }}>
                       <button onClick={() => toggleStatus(id, !status)}
                         style={{ backgroundColor: status ? '#28a745' : '#dc3545', color: 'white',
