@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad | INEX</title>
+  <style>
+    :root {
+      --bg: #0f172a;        /* slate-900 */
+      --card: #111827;      /* gray-900 */
+      --text: #e5e7eb;      /* gray-200 */
+      --muted: #9ca3af;     /* gray-400 */
+      --primary: #38bdf8;   /* sky-400 */
+      --border: #1f2937;    /* gray-800 */
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #0b1220, transparent), var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+    header {
+      margin-bottom: 28px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.15);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 12px;
+      border: 1px solid rgba(56,189,248,.25);
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 40px);
+      margin: 12px 0 6px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      max-width: 700px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    h2 {
+      font-size: 20px;
+      margin: 0 0 10px;
+      letter-spacing: -0.01em;
+    }
+    p { margin: 0 0 14px; }
+    ul {
+      padding-left: 18px;
+      margin: 10px 0 0;
+    }
+    li { margin-bottom: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 768px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .info {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(56,189,248,.08);
+      border: 1px dashed rgba(56,189,248,.25);
+      color: var(--text);
+      font-size: 14px;
+    }
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <span class="badge">Privacidad</span>
+      <h1>Política de Privacidad de INEX</h1>
+      <p class="subtitle">
+        INEX es una aplicación Android desarrollada y publicada por <strong>Ares02</strong>.
+        Esta política explica cómo se maneja la información del usuario al utilizar la app.
+      </p>
+    </header>
+
+    <section class="card">
+        <h2>Recopilación y uso de información</h2>
+        <p>
+          INEX recopila y almacena datos del usuario para poder comunicarse con el después de su
+            problemática compartida. INEX no comparte datos personales o sensibles.
+          Todo el procesamiento de texto se realiza localmente en el dispositivo del usuario.
+        </p>
+    </section>
+
+    <section class="card">
+      <h2>Permisos</h2>
+      <p>
+        INEX puede solicitar los siguientes permisos, utilizados únicamente para la funcionalidad de la app:
+      </p>
+      <ul>
+        <li><strong>Cámara:</strong> escanear texto desde imágenes.</li>
+        <li><strong>Almacenamiento:</strong> guardar resultados del escaneo.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+    <h2>Edad mínima de uso</h2>
+    <p>
+      INEX está dirigida a personas mayores de 15 años. La aplicación es una herramienta de productividad
+      enfocada en el escaneo y procesamiento de texto, por lo que no resulta de interés para niños y no
+      está diseñada para su uso por menores de dicha edad.
+    </p>
+    </section>
+
+    <section class="card">
+      <h2>Cambios a esta Política</h2>
+      <p>
+        Esta política puede actualizarse ocasionalmente. Cualquier cambio será publicado en esta página.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Contacto</h2>
+      <p>
+        Para cualquier duda relacionada con esta Política de Privacidad, puedes contactar al desarrollador:
+      </p>
+      <p>
+        <a href="mailto:support@ares02.com">developer.ares.01@gmail.com</a>
+      </p>
+    </section>
+
+    <footer>
+      <span class="pill">INEX</span>
+      <span class="pill">Ares02</span>
+      <span>Última actualización: 2025</span>
+    </footer>
+  </main>
+</body>
+</html>
