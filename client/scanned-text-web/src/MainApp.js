@@ -54,25 +54,54 @@ function MainApp() {
   const [regLoading, setRegLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false); // ✅ controls popup
 
-  if (!user) {
-    console.log('❌ No logged user');
-    return;
-  }
-
-  const token = await user.getIdToken();
-  console.log('🔥 TOKEN EXISTS:', !!token);
+  
 
   useEffect(() => {
-    setLoading(true);
-    fetch('https://scanner-texts-app.onrender.com/texts')
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchTexts = async () => {
+      try {
+        setLoading(true);
+
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.log('❌ No logged user yet');
+          setLoading(false);
+          return;
+        }
+
+        const token = await user.getIdToken();
+        console.log('🔥 TOKEN EXISTS:', !!token);
+
+        const response = await fetch(
+          'https://scanner-texts-app.onrender.com/texts',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error('❌ Unauthorized', response.status);
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
         setTexts(data);
         setFilteredTexts(data);
+      } catch (err) {
+        console.error('❌ Fetch error:', err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchTexts();
   }, []);
+
 
   const applyFilters = () => {
     const sectionTerm = filterSection.trim().toLowerCase();
