@@ -90,12 +90,14 @@ import MainApp from './MainApp';
 function App() {
   const [user, setUser] = useState(null);
   const [isLeader, setIsLeader] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
         setIsLeader(false);
+        setAuthLoading(false);
         return;
       }
 
@@ -107,11 +109,13 @@ function App() {
           await signOut(auth);
           setUser(null);
           setIsLeader(false);
+          setAuthLoading(false);
           return;
         }
 
         setUser(firebaseUser);
         setIsLeader(true);
+        setAuthLoading(false);
       } catch (err) {
         console.error('Auth check failed', err);
         await signOut(auth);
@@ -123,7 +127,21 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // ⚠️ Flicker still exists – we fix this in the NEXT step
+  if (authLoading) {
+    return (
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <p>⏳ Checking session...</p>
+      </div>
+    );
+  }
+
   if (!user || !isLeader) {
     return <AuthForm />;
   }
