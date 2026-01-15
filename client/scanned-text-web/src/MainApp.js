@@ -1,3 +1,4 @@
+import { getAuth } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -30,6 +31,8 @@ function InputField({ icon: Icon, name, type, placeholder, value, onChange, requ
 
 function MainApp() {
   // --- texts state ---
+  const auth = getAuth();
+  const user = auth.currentUser;
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
@@ -50,6 +53,14 @@ function MainApp() {
   const [regMessage, setRegMessage] = useState('');
   const [regLoading, setRegLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false); // ✅ controls popup
+
+  if (!user) {
+    console.log('❌ No logged user');
+    return;
+  }
+
+  const token = await user.getIdToken();
+  console.log('🔥 TOKEN EXISTS:', !!token);
 
   useEffect(() => {
     setLoading(true);
