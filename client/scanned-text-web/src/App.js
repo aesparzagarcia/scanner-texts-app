@@ -7,9 +7,14 @@ import MainApp from './MainApp';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setAuthLoading(false); // ✅ auth check finished
+    });
+
     return () => unsubscribe();
   }, []);
 
@@ -17,8 +22,16 @@ function App() {
     signOut(auth);
   };
 
+  if (authLoading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p>⏳ Checking session...</p>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <AuthForm onLogin={setUser} />;
+    return <AuthForm />;
   }
 
   return (
