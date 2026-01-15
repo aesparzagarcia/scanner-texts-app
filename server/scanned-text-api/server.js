@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
 const crypto = require('crypto');
+const requireAuth = require('./authMiddleware');
 require('dotenv').config();
 
 const app = express();
