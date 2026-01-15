@@ -19,6 +19,8 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false } // Required by Render
 });
 
+console.log('Has private key:', !!process.env.FIREBASE_PRIVATE_KEY);
+
 // Create table if it doesn't exist
 (async () => {
   try {
