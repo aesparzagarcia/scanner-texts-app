@@ -18,6 +18,8 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false } // Required by Render
 });
 
+console.log('ENV DATABASE_URL:', !!process.env.DATABASE_URL);
+
 // Create table if it doesn't exist
 (async () => {
   try {
