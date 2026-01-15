@@ -1,3 +1,4 @@
+const authMiddleware = require('./authMiddleware');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -18,8 +19,6 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false } // Required by Render
 });
 
-console.log('ENV DATABASE_URL:', !!process.env.DATABASE_URL);
-
 // Create table if it doesn't exist
 (async () => {
   try {
@@ -38,7 +37,7 @@ console.log('ENV DATABASE_URL:', !!process.env.DATABASE_URL);
 })();
 
 // Routes
-app.post('/texts', async (req, res) => {
+app.post('/texts', authMiddleware, async (req, res) => {
   const { text } = req.body; // text is an object
 
   if (!text || !text.nombre || !text.telefono) {
@@ -89,7 +88,7 @@ app.post('/texts', async (req, res) => {
 });
 
 // DELETE - Remove all texts
-app.delete('/texts', async (req, res) => {
+app.delete('/texts', authMiddleware, async (req, res) => {
   try {
     await pool.query('DELETE FROM texts');
     res.json({ message: 'All texts deleted' });
@@ -100,7 +99,7 @@ app.delete('/texts', async (req, res) => {
 });
 
 // GET - Retrieve all texts
-app.get('/texts', async (req, res) => {
+app.get('/texts', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, content, status, duplicated, created_at FROM texts ORDER BY created_at DESC'
@@ -120,7 +119,7 @@ app.get('/texts', async (req, res) => {
 });
 
 // PATCH - Update status
-app.patch('/texts/:id/status', async (req, res) => {
+app.patch('/texts/:id/status', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
