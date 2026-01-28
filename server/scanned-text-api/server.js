@@ -48,14 +48,24 @@ app.post('/texts', requireAuth(), async (req, res) => {
   try {
     // Check if a scan with same phone OR same name+seccion+colonia exists
     const existing = await pool.query(
-      `SELECT id FROM texts
-       WHERE content->>'telefono' = $1
-          OR (
-            content->>'nombre' = $2
-            AND content->>'seccion' = $3
-            AND content->>'colonia' = $4
-          )`,
-      [text.telefono, text.nombre, text.seccion, text.colonia]
+      `
+      SELECT id FROM texts
+      WHERE
+        content->>'telefono' = $1
+        OR content->>'clave_elector' = $2
+        OR (
+          content->>'nombre' = $3
+          AND content->>'seccion' = $4
+          AND content->>'colonia' = $5
+        )
+      `,
+      [
+        text.telefono,
+        text.clave_elector,
+        text.nombre,
+        text.seccion,
+        text.colonia
+      ]
     );
 
     const isExisting = existing.rows.length > 0;

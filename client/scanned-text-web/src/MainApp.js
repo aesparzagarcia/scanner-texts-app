@@ -31,8 +31,6 @@ function InputField({ icon: Icon, name, type, placeholder, value, onChange, requ
 
 function MainApp() {
   // --- texts state ---
-  const auth = getAuth();
-  const user = auth.currentUser;
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState('');
@@ -54,7 +52,7 @@ function MainApp() {
   const [regLoading, setRegLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false); // ✅ controls popup
 
-  
+
 
   useEffect(() => {
     const fetchTexts = async () => {
@@ -248,7 +246,7 @@ function MainApp() {
             <table style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 0 5px rgba(0,0,0,0.1)' }}>
               <thead style={{ backgroundColor: '#f1f1f1' }}>
                 <tr>
-                  {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Clave de Elector', 'Estatus', 'Referencia', 'Lider', 'Creado por'].map(header => (
+                  {['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Clave de Elector', 'Estatus', 'Referencia', 'Lider', 'Creado por', 'Carro', 'Tipo Carro'].map(header => (
                     <th key={header} style={{ padding: 10, textAlign: 'left', borderBottom: '2px solid #ccc' }}>{header}</th>
                   ))}
                 </tr>
@@ -275,6 +273,8 @@ function MainApp() {
                     <td style={{ padding: 8 }}>{text.referencia || 'N/A'}</td>
                     <td style={{ padding: 8 }}>{text.lider || 'N/A'}</td>
                     <td style={{ padding: 8 }}>{text.creadopor || 'N/A'}</td>
+                    <td style={{ padding: 8 }}>{text.carro || 'N/A'}</td>
+                    <td style={{ padding: 8 }}>{text.tipo_carro || 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>
