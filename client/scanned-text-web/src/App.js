@@ -72,40 +72,49 @@ function App() {
         backgroundColor: '#f9f9f9',
       }}
     >
-      <header
+      <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 24px',
-          backgroundColor: '#007BFF',
-          color: 'white',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+          maxWidth: 1200,
+          margin: '0 auto',
+          width: '100%',
         }}
       >
-        <span>
-          Bienvenido, <strong>{user.email}</strong>
-        </span>
-
-        <button
-          onClick={() => signOut(auth)}
+        <header
           style={{
-            padding: '6px 16px',
-            backgroundColor: '#dc3545',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 24px',
+            backgroundColor: '#007BFF',
             color: 'white',
-            border: 'none',
-            borderRadius: 5,
-            cursor: 'pointer',
-            fontWeight: 'bold',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
           }}
         >
-          Salir
-        </button>
-      </header>
+          <span>
+            Bienvenido, <strong>{user.email}</strong>
+          </span>
 
-      <main style={{ padding: 20 }}>
-        <MainApp />
-      </main>
+          <button
+            onClick={() => signOut(auth)}
+            style={{
+              padding: '6px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: 5,
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              width: 'auto',
+            }}
+          >
+            Salir
+          </button>
+        </header>
+
+        <main style={{ padding: 20 }}>
+          <MainApp />
+        </main>
+      </div>
     </div>
   );
 }
