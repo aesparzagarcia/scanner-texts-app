@@ -10,6 +10,7 @@ import {
   AiOutlinePhone,
   AiOutlineTag,
 } from 'react-icons/ai';
+import * as XLSX from 'xlsx';
 import './MainApp.css'; // ✅ use same theme
 
 function InputField({ icon: Icon, name, type, placeholder, value, onChange, required }) {
@@ -165,6 +166,30 @@ function MainApp() {
   const handleFormChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  const exportToExcel = () => {
+    const headers = ['Nombre', 'Domicilio', 'Teléfono', 'Sección', 'Colonia', 'Petición', 'Clave de Elector', 'Estatus', 'Referencia', 'Lider', 'Creado por', 'Carro', 'Tipo Carro'];
+    const rows = filteredTexts.map(({ text, status }) => [
+      text.nombre || 'N/A',
+      text.domicilio || 'N/A',
+      text.telefono || 'N/A',
+      text.seccion || 'N/A',
+      text.colonia || 'N/A',
+      text.peticion || 'N/A',
+      text.clave_elector || 'N/A',
+      status ? 'Completado' : 'Pendiente',
+      text.referencia || 'N/A',
+      text.lider || 'N/A',
+      text.creadopor || 'N/A',
+      text.carro || 'N/A',
+      text.tipo_carro || 'N/A',
+    ]);
+    const data = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'INES Escaneadas');
+    XLSX.writeFile(wb, `ines-escaneadas-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setRegMessage('');
@@ -229,6 +254,12 @@ function MainApp() {
           style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer', fontSize: 14 }}>
           Limpiar
         </button>
+        {filteredTexts.length > 0 && (
+          <button onClick={exportToExcel}
+            style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer', fontSize: 14 }}>
+            Exportar a Excel
+          </button>
+        )}
       </div>
 
       {loading && <p style={{ textAlign: 'center' }}>⏳ Cargando datos...</p>}
