@@ -240,6 +240,11 @@ function MainApp() {
           onChange={e => setFilterColony(e.target.value)}
           style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', width: 150, fontSize: 14 }} />
 
+        <button onClick={applyFilters}
+          style={{ padding: '4px 12px', borderRadius: 4, backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer', fontSize: 14 }}>
+          Filtrar
+        </button>
+
         <button onClick={() => setFilterDuplicated(true)}
           style={{ padding: '4px 8px', borderRadius: 4, backgroundColor: filterDuplicated === true ? '#dc3545' : '#f8d7da',
                    color: filterDuplicated === true ? 'white' : '#721c24', border: '1px solid #dc3545', cursor: 'pointer', fontSize: 14 }}>
