@@ -334,14 +334,6 @@ function MainApp() {
         </>
       )}
 
-      {/* --- Button to open registration popup --- */}
-      <button
-        onClick={() => setShowRegister(true)}
-        className="fab-btn"
-        title="Registrar nuevo usuario">
-        +
-      </button>
-
       {/* --- Registration Modal --- */}
       {showRegister && (
         <div
