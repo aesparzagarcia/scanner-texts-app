@@ -49,7 +49,8 @@
   outline: none;
 }
 
-button {
+.auth-wrapper button,
+.auth-box button {
   width: 100%;
   padding: 12px;
   border: none;
@@ -60,7 +61,8 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
+.auth-wrapper button:disabled,
+.auth-box button:disabled {
   background-color: #aaa;
   cursor: not-allowed;
 }
