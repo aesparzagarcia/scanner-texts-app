@@ -91,7 +91,7 @@ function MainApp() {
       await updateDoc(snap.docs[0].ref, { is_leader: isLeader });
       setLeaderMessage(
         isLeader
-          ? '✅ Usuario marcado como líder. Debe volver a entrar a la web para aplicar.'
+          ? '✅ Usuario marcado como líder. Debe salir actualizar el app deslizando haca abajo.'
           : '✅ Usuario ya no es líder.'
       );
     } catch (err) {
@@ -299,8 +299,7 @@ function MainApp() {
           Gestionar líderes (web)
         </h2>
         <p style={{ margin: '0 0 10px 0', fontSize: 13, color: '#555' }}>
-          Busca un usuario por el mismo correo que en la app móvil y marca o quita el rol líder
-          (<code>is_leader</code> en Firestore).
+          Busca un usuario el correo del usuario y conviételo el lider.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <input
@@ -448,28 +447,24 @@ function MainApp() {
 
           {/* Pagination controls */}
           <div style={{ marginTop: 15, display: 'flex', justifyContent: 'center', gap: 8 }}>
-            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>
+              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
+            >
               ⬅️ Anterior
             </button>
             <span style={{ alignSelf: 'center' }}>Página {currentPage} de {totalPages}</span>
-            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}>
+              style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
+            >
               Siguiente ➡️
             </button>
           </div>
         </>
       )}
-
-      {/* --- Button to open registration popup --- */}
-      <button
-        onClick={() => setShowRegister(true)}
-        className="fab-btn"
-        title="Registrar nuevo usuario">
-        +
-      </button>
 
       {/* --- Registration Modal --- */}
       {showRegister && (
