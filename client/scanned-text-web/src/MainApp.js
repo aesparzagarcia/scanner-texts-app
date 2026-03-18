@@ -2,7 +2,16 @@ import { getAuth } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import {
   AiOutlineMail,
   AiOutlineLock,
@@ -53,7 +62,52 @@ function MainApp() {
   const [regLoading, setRegLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false); // ✅ controls popup
 
+  // --- gestionar is_leader por email (panel líderes) ---
+  const [leaderEmail, setLeaderEmail] = useState('');
+  const [leaderLoading, setLeaderLoading] = useState(false);
+  const [leaderMessage, setLeaderMessage] = useState('');
 
+  const handleUpdateLeader = async (isLeader) => {
+    setLeaderMessage('');
+    const email = leaderEmail.trim();
+    if (!email) {
+      setLeaderMessage('❌ Escribe el correo del usuario.');
+      return;
+    }
+    setLeaderLoading(true);
+    try {
+      let snap = await getDocs(
+        query(collection(db, 'users'), where('email', '==', email))
+      );
+      if (snap.empty) {
+        snap = await getDocs(
+          query(collection(db, 'users'), where('email', '==', email.toLowerCase()))
+        );
+      }
+      if (snap.empty) {
+        setLeaderMessage('❌ No se encontró usuario con ese correo.');
+        return;
+      }
+      await updateDoc(snap.docs[0].ref, { is_leader: isLeader });
+      setLeaderMessage(
+        isLeader
+          ? '✅ Usuario marcado como líder. Debe volver a entrar a la web para aplicar.'
+          : '✅ Usuario ya no es líder.'
+      );
+    } catch (err) {
+      const code = err?.code || '';
+      const msg = err?.message || '';
+      if (code === 'permission-denied' || msg.includes('permission')) {
+        setLeaderMessage(
+          '❌ Sin permiso en Firestore. Revisa reglas: ver FIRESTORE_RULES_LEADER_PANEL.md'
+        );
+      } else {
+        setLeaderMessage(`❌ ${msg || code || 'Error al actualizar'}`);
+      }
+    } finally {
+      setLeaderLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTexts = async () => {
@@ -231,6 +285,81 @@ function MainApp() {
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
       <h1 style={{ marginBottom: 20, textAlign: 'left' }}>📋 INES Escaneadas</h1>
 
+      {/* Panel: gestionar is_leader por correo (Firestore users) */}
+      <div
+        style={{
+          marginBottom: 20,
+          padding: 14,
+          border: '1px solid #cce5ff',
+          borderRadius: 8,
+          backgroundColor: '#f0f8ff',
+        }}
+      >
+        <h2 style={{ margin: '0 0 10px 0', fontSize: 16, fontWeight: 600 }}>
+          Gestionar líderes (web)
+        </h2>
+        <p style={{ margin: '0 0 10px 0', fontSize: 13, color: '#555' }}>
+          Busca un usuario por el mismo correo que en la app móvil y marca o quita el rol líder
+          (<code>is_leader</code> en Firestore).
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+          <input
+            type="email"
+            placeholder="correo@ejemplo.com"
+            value={leaderEmail}
+            onChange={(e) => setLeaderEmail(e.target.value)}
+            disabled={leaderLoading}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              minWidth: 220,
+              fontSize: 14,
+            }}
+          />
+          <button
+            type="button"
+            disabled={leaderLoading}
+            onClick={() => handleUpdateLeader(true)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 4,
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              cursor: leaderLoading ? 'wait' : 'pointer',
+              fontSize: 14,
+            }}
+          >
+            Hacer líder
+          </button>
+          <button
+            type="button"
+            disabled={leaderLoading}
+            onClick={() => handleUpdateLeader(false)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 4,
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              cursor: leaderLoading ? 'wait' : 'pointer',
+              fontSize: 14,
+            }}
+          >
+            Quitar líder
+          </button>
+        </div>
+        {leaderMessage && (
+          <p style={{ marginTop: 10, marginBottom: 0, fontSize: 14 }}>{leaderMessage}</p>
+        )}
+        {leaderLoading && (
+          <p style={{ marginTop: 8, marginBottom: 0, fontSize: 13, color: '#666' }}>
+            Actualizando…
+          </p>
+        )}
+      </div>
+
       {/* Filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20, alignItems: 'center' }}>
         <input type="text" placeholder="Sección" value={filterSection}
@@ -333,6 +462,14 @@ function MainApp() {
           </div>
         </>
       )}
+
+      {/* --- Button to open registration popup --- */}
+      <button
+        onClick={() => setShowRegister(true)}
+        className="fab-btn"
+        title="Registrar nuevo usuario">
+        +
+      </button>
 
       {/* --- Registration Modal --- */}
       {showRegister && (
