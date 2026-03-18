@@ -91,7 +91,7 @@ function MainApp() {
       await updateDoc(snap.docs[0].ref, { is_leader: isLeader });
       setLeaderMessage(
         isLeader
-          ? '✅ Usuario marcado como líder. Debe salir actualizar el app deslizando haca abajo.'
+          ? '✅ Usuario marcado como líder. En el menú, busca la opción actualizar permisos'
           : '✅ Usuario ya no es líder.'
       );
     } catch (err) {
