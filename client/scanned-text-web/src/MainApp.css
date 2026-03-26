@@ -93,6 +93,105 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+.modal-box.wide {
+  width: 980px;
+  max-width: 96vw;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.modal-input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  min-width: 240px;
+}
+
+.table-wrap {
+  max-height: 65vh;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.users-table th,
+.users-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.users-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8f8f8;
+  border-bottom: 2px solid #e6e6e6;
+}
+
+.cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.small-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.small-btn.primary {
+  background: #007bff;
+  color: white;
+}
+
+.small-btn.secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.small-btn.danger {
+  background: #dc3545;
+  color: white;
+}
+
+.small-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .modal-box h2 {
   margin-bottom: 15px;
   text-align: center;

@@ -6,8 +6,11 @@ import {
   collection,
   doc,
   getDocs,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
+  startAfter,
   setDoc,
   updateDoc,
   where,
@@ -66,6 +69,127 @@ function MainApp() {
   const [leaderEmail, setLeaderEmail] = useState('');
   const [leaderLoading, setLeaderLoading] = useState(false);
   const [leaderMessage, setLeaderMessage] = useState('');
+
+  // --- users modal state ---
+  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersLoadingMore, setUsersLoadingMore] = useState(false);
+  const [usersError, setUsersError] = useState('');
+  const [users, setUsers] = useState([]);
+  const [usersFilter, setUsersFilter] = useState('');
+  const [usersLastDoc, setUsersLastDoc] = useState(null);
+  const [usersHasMore, setUsersHasMore] = useState(true);
+  const [userEdits, setUserEdits] = useState({});
+  const [userSaving, setUserSaving] = useState({});
+  const USERS_PAGE_SIZE = 200;
+
+  const closeUsersModal = () => {
+    setShowUsersModal(false);
+    setUsersError('');
+    setUsersFilter('');
+  };
+
+  const normalizeText = (v) => (v ?? '').toString().trim().toLowerCase();
+
+  const upsertUserEdits = (uid, patch) => {
+    setUserEdits((prev) => ({
+      ...prev,
+      [uid]: {
+        ...(prev[uid] || {}),
+        ...patch,
+      },
+    }));
+  };
+
+  const loadUsersPage = async ({ reset } = { reset: false }) => {
+    const runLoadingSetter = reset ? setUsersLoading : setUsersLoadingMore;
+    runLoadingSetter(true);
+    setUsersError('');
+    try {
+      const base = collection(db, 'users');
+      const q = reset
+        ? query(base, orderBy('email'), limit(USERS_PAGE_SIZE))
+        : query(base, orderBy('email'), startAfter(usersLastDoc), limit(USERS_PAGE_SIZE));
+
+      const snap = await getDocs(q);
+      const batch = snap.docs.map((d) => {
+        const data = d.data() || {};
+        return {
+          id: d.id,
+          email: data.email || '',
+          name: data.name || '',
+          phone: data.phone || '',
+          reference: data.reference || '',
+          is_leader: !!data.is_leader,
+          leader: data.leader || '',
+        };
+      });
+
+      const last = snap.docs[snap.docs.length - 1] || null;
+      const hasMore = snap.docs.length === USERS_PAGE_SIZE;
+
+      if (reset) {
+        setUsers(batch);
+      } else {
+        setUsers((prev) => [...prev, ...batch]);
+      }
+      setUsersLastDoc(last);
+      setUsersHasMore(hasMore);
+
+      // Initialize edit buffers for newly loaded users (don’t overwrite existing edits).
+      setUserEdits((prev) => {
+        const next = { ...prev };
+        for (const u of batch) {
+          if (!next[u.id]) {
+            next[u.id] = {
+              is_leader: u.is_leader,
+              leader: u.leader,
+              reference: u.reference,
+            };
+          }
+        }
+        return next;
+      });
+    } catch (err) {
+      const msg = err?.message || 'Error loading users';
+      setUsersError(msg);
+    } finally {
+      runLoadingSetter(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showUsersModal) return;
+    // Reset paging state on open.
+    setUsers([]);
+    setUsersLastDoc(null);
+    setUsersHasMore(true);
+    setUserEdits({});
+    loadUsersPage({ reset: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showUsersModal]);
+
+  const saveUserRow = async (uid) => {
+    setUsersError('');
+    setUserSaving((prev) => ({ ...prev, [uid]: true }));
+    try {
+      const edits = userEdits[uid] || {};
+      const payload = {
+        is_leader: !!edits.is_leader,
+        leader: (edits.leader ?? '').toString().trim(),
+        reference: (edits.reference ?? '').toString().trim(),
+      };
+      await updateDoc(doc(db, 'users', uid), payload);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === uid ? { ...u, ...payload } : u))
+      );
+    } catch (err) {
+      const msg = err?.message || 'Error saving user';
+      setUsersError(msg);
+    } finally {
+      setUserSaving((prev) => ({ ...prev, [uid]: false }));
+    }
+  };
 
   const handleUpdateLeader = async (isLeader) => {
     setLeaderMessage('');
@@ -560,6 +684,146 @@ function MainApp() {
             >
               Cerrar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- Users FAB + Modal --- */}
+      <button
+        type="button"
+        className="fab-btn"
+        title="Usuarios"
+        onClick={() => setShowUsersModal(true)}
+      >
+        👤
+      </button>
+
+      {showUsersModal && (
+        <div className="modal-overlay" onMouseDown={(e) => {
+          if (e.target === e.currentTarget) closeUsersModal();
+        }}>
+          <div className="modal-box wide" role="dialog" aria-modal="true" aria-label="Usuarios">
+            <div className="modal-header">
+              <h2 className="modal-title">Usuarios</h2>
+              <div className="modal-actions">
+                <input
+                  className="modal-input"
+                  type="text"
+                  placeholder="Filtrar por nombre…"
+                  value={usersFilter}
+                  onChange={(e) => setUsersFilter(e.target.value)}
+                />
+                <button type="button" className="small-btn secondary" onClick={closeUsersModal}>
+                  Cerrar
+                </button>
+              </div>
+            </div>
+
+            {usersError && (
+              <div style={{ marginBottom: 10, color: '#b00020', fontSize: 13 }}>
+                {usersError}
+              </div>
+            )}
+
+            {(usersLoading) && (
+              <div style={{ marginBottom: 10, fontSize: 13, color: '#666' }}>Cargando usuarios…</div>
+            )}
+
+            <div className="table-wrap">
+              <table className="users-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>is_leader</th>
+                    <th>Leader</th>
+                    <th>Phone</th>
+                    <th>Reference</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users
+                    .filter((u) => {
+                      const term = normalizeText(usersFilter);
+                      if (!term) return true;
+                      return normalizeText(u.name).includes(term);
+                    })
+                    .map((u) => {
+                      const edits = userEdits[u.id] || {
+                        is_leader: u.is_leader,
+                        leader: u.leader,
+                        reference: u.reference,
+                      };
+                      const saving = !!userSaving[u.id];
+                      return (
+                        <tr key={u.id}>
+                          <td style={{ minWidth: 220 }}>{u.email || '—'}</td>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={!!edits.is_leader}
+                              onChange={(e) => upsertUserEdits(u.id, { is_leader: e.target.checked })}
+                            />
+                          </td>
+                          <td style={{ minWidth: 180 }}>
+                            <input
+                              className="cell-input"
+                              type="text"
+                              value={edits.leader ?? ''}
+                              onChange={(e) => upsertUserEdits(u.id, { leader: e.target.value })}
+                              placeholder="leader"
+                            />
+                          </td>
+                          <td style={{ minWidth: 140 }}>{u.phone || '—'}</td>
+                          <td style={{ minWidth: 200 }}>
+                            <input
+                              className="cell-input"
+                              type="text"
+                              value={edits.reference ?? ''}
+                              onChange={(e) => upsertUserEdits(u.id, { reference: e.target.value })}
+                              placeholder="reference"
+                            />
+                          </td>
+                          <td style={{ whiteSpace: 'nowrap' }}>
+                            <button
+                              type="button"
+                              className="small-btn primary"
+                              disabled={saving}
+                              onClick={() => saveUserRow(u.id)}
+                            >
+                              {saving ? 'Guardando…' : 'Guardar'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12 }}>
+              <div style={{ fontSize: 13, color: '#666' }}>
+                Cargados: {users.length}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  className="small-btn secondary"
+                  disabled={usersLoading || usersLoadingMore}
+                  onClick={() => loadUsersPage({ reset: true })}
+                >
+                  Recargar
+                </button>
+                <button
+                  type="button"
+                  className="small-btn primary"
+                  disabled={!usersHasMore || usersLoadingMore || usersLoading || !usersLastDoc}
+                  onClick={() => loadUsersPage({ reset: false })}
+                >
+                  {usersLoadingMore ? 'Cargando…' : usersHasMore ? 'Cargar más' : 'Sin más'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
