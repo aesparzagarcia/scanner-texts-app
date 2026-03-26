@@ -33,6 +33,10 @@ function AuthForm() {
     setIsLoading(true);
 
     try {
+      if (!auth) {
+        setMessage('❌ Firebase Auth no está inicializado. Revisa REACT_APP_FIREBASE_* en .env.');
+        return;
+      }
       await signInWithEmailAndPassword(auth, form.email, form.password);
       setMessage('✅ Login successful');
       // IMPORTANT: Do NOT redirect here

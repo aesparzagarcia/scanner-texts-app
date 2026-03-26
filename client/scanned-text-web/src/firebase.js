@@ -2,63 +2,75 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Config via env vars (Create React App requires REACT_APP_ prefix).
-// Add these to `backend/client/scanned-text-web/.env` (or your hosting env):
-// - REACT_APP_FIREBASE_API_KEY
-// - REACT_APP_FIREBASE_AUTH_DOMAIN
-// - REACT_APP_FIREBASE_PROJECT_ID
-// - REACT_APP_FIREBASE_STORAGE_BUCKET
-// - REACT_APP_FIREBASE_MESSAGING_SENDER_ID
-// - REACT_APP_FIREBASE_APP_ID
-/** False when CRA env vars are missing — auth/Firestore will not work in the browser. */
+// Create React App only exposes env vars prefixed with REACT_APP_.
+// Add these to `backend/client/scanned-text-web/.env` and restart `npm start`.
+
+const isTest = process.env.NODE_ENV === 'test';
+
+/** True when both API key and project id are non-empty (still might be wrong values). */
 export const isWebFirebaseConfigured =
   Boolean(
     (process.env.REACT_APP_FIREBASE_API_KEY || '').trim() &&
       (process.env.REACT_APP_FIREBASE_PROJECT_ID || '').trim()
   );
 
-const firebaseConfig = {
-  apiKey:
-    process.env.REACT_APP_FIREBASE_API_KEY ||
-    (process.env.NODE_ENV === 'test'
-      ? 'AIzaSyDUMMYDUMMYDUMMYDUMMYDUMMYDUMMYDUM'
-      : undefined),
-  authDomain:
-    process.env.REACT_APP_FIREBASE_AUTH_DOMAIN ||
-    (process.env.NODE_ENV === 'test' ? 'test.firebaseapp.com' : undefined),
-  projectId:
-    process.env.REACT_APP_FIREBASE_PROJECT_ID ||
-    (process.env.NODE_ENV === 'test' ? 'test' : undefined),
-  storageBucket:
-    process.env.REACT_APP_FIREBASE_STORAGE_BUCKET ||
-    (process.env.NODE_ENV === 'test' ? 'test.appspot.com' : undefined),
-  messagingSenderId:
-    process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID ||
-    (process.env.NODE_ENV === 'test' ? '000000000000' : undefined),
-  appId:
-    process.env.REACT_APP_FIREBASE_APP_ID ||
-    (process.env.NODE_ENV === 'test' ? '1:000000000000:web:test' : undefined),
+const testFirebaseConfig = {
+  apiKey: 'AIzaSyDUMMYDUMMYDUMMYDUMMYDUMMYDUMMYDUM',
+  authDomain: 'test.firebaseapp.com',
+  projectId: 'test',
+  storageBucket: 'test.appspot.com',
+  messagingSenderId: '000000000000',
+  appId: '1:000000000000:web:test',
 };
 
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.REACT_APP_DEBUG_AUTH === '1'
-  ) {
-    console.info('[TextScan:firebase] initializeApp OK', {
-      isWebFirebaseConfigured,
-      projectId: firebaseConfig.projectId || '(missing)',
-      authDomain: firebaseConfig.authDomain || '(missing)',
-      hasApiKey: Boolean((firebaseConfig.apiKey || '').length),
-    });
+const envFirebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+};
+
+/** Set if initializeApp / getAuth / getFirestore throws. */
+export let firebaseBootstrapError = null;
+
+/** Only non-null after a successful bootstrap (or in tests). */
+export let auth = null;
+export let db = null;
+
+export const firebaseReady = () => Boolean(auth && db);
+
+(function bootstrap() {
+  if (!isTest && !isWebFirebaseConfigured) {
+    console.warn(
+      '[TextScan:firebase] Skipping Firebase init: add REACT_APP_FIREBASE_API_KEY and REACT_APP_FIREBASE_PROJECT_ID to .env, then restart the dev server.'
+    );
+    return;
   }
-} catch (e) {
-  console.error('[TextScan:firebase] initializeApp FAILED', e?.code || e?.message || e);
-  throw e;
-}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+  const firebaseConfig = isTest ? testFirebaseConfig : envFirebaseConfig;
 
+  try {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.REACT_APP_DEBUG_AUTH === '1'
+    ) {
+      console.info('[TextScan:firebase] initializeApp + auth + db OK', {
+        projectId: firebaseConfig.projectId || '(missing)',
+        authDomain: firebaseConfig.authDomain || '(missing)',
+      });
+    }
+  } catch (e) {
+    const code = e?.code || '';
+    const message = e?.message || String(e);
+    firebaseBootstrapError = message;
+    auth = null;
+    db = null;
+    console.error('[TextScan:firebase] Bootstrap FAILED', { code, message, e });
+  }
+})();

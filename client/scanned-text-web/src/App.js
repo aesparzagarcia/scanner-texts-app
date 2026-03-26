@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db, isWebFirebaseConfigured } from './firebase';
+import {
+  auth,
+  db,
+  firebaseBootstrapError,
+  firebaseReady,
+  isWebFirebaseConfigured,
+} from './firebase';
 import AuthForm from './AuthForm';
 import MainApp from './MainApp';
 
@@ -16,6 +22,17 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
+    if (!firebaseReady()) {
+      if (debugAuth) {
+        console.info(LOG, 'useEffect: skip onAuthStateChanged (no auth/db)', {
+          isWebFirebaseConfigured,
+          firebaseBootstrapError,
+        });
+      }
+      setAuthLoading(false);
+      return undefined;
+    }
+
     if (debugAuth) {
       console.info(LOG, 'useEffect: subscribe onAuthStateChanged', {
         isWebFirebaseConfigured,
@@ -143,6 +160,38 @@ function App() {
             <code>REACT_APP_FIREBASE_PROJECT_ID</code>, etc. Copia los valores desde la consola de
             Firebase → Configuración del proyecto → Tus apps. Luego reinicia{' '}
             <code>npm start</code>.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (process.env.NODE_ENV !== 'test' && isWebFirebaseConfigured && firebaseBootstrapError) {
+    return (
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+          fontFamily: 'Arial, sans-serif',
+          maxWidth: 560,
+          margin: '0 auto',
+          textAlign: 'left',
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 18, marginBottom: 12 }}>Firebase no pudo iniciarse</h1>
+          <p style={{ color: '#b00020', fontSize: 14, marginBottom: 12 }}>
+            {firebaseBootstrapError}
+          </p>
+          <p style={{ color: '#444', lineHeight: 1.5, fontSize: 14 }}>
+            Si ves <strong>auth/invalid-api-key</strong>: la clave en{' '}
+            <code>REACT_APP_FIREBASE_API_KEY</code> no coincide con tu proyecto, tiene espacios,
+            o el archivo <code>.env</code> no se cargó (detén y vuelve a ejecutar{' '}
+            <code>npm start</code>). Usa la configuración &quot;SDK setup and configuration&quot; de la
+            app <em>Web</em> en Firebase Console.
           </p>
         </div>
       </div>
