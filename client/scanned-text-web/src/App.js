@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { auth, db, isWebFirebaseConfigured } from './firebase';
 import AuthForm from './AuthForm';
 import MainApp from './MainApp';
 
@@ -12,14 +12,13 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        setIsLeader(false);
-        setAuthLoading(false);
-        return;
-      }
-
       try {
+        if (!firebaseUser) {
+          setUser(null);
+          setIsLeader(false);
+          return;
+        }
+
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         const userData = userDoc.data();
 
@@ -27,23 +26,58 @@ function App() {
           await signOut(auth);
           setUser(null);
           setIsLeader(false);
-          setAuthLoading(false);
           return;
         }
 
         setUser(firebaseUser);
         setIsLeader(true);
-        setAuthLoading(false);
       } catch (err) {
         console.error('Auth check failed', err);
-        await signOut(auth);
+        try {
+          await signOut(auth);
+        } catch (_) {
+          /* ignore */
+        }
         setUser(null);
         setIsLeader(false);
+      } finally {
+        setAuthLoading(false);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  if (process.env.NODE_ENV !== 'test' && !isWebFirebaseConfigured) {
+    return (
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+          fontFamily: 'Arial, sans-serif',
+          maxWidth: 520,
+          margin: '0 auto',
+          textAlign: 'center',
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 18, marginBottom: 12 }}>
+            Firebase no está configurado en la web
+          </h1>
+          <p style={{ color: '#444', lineHeight: 1.5 }}>
+            Añade en <code>.env</code> (en la carpeta del proyecto web) las variables{' '}
+            <code>REACT_APP_FIREBASE_API_KEY</code>, <code>REACT_APP_FIREBASE_AUTH_DOMAIN</code>,{' '}
+            <code>REACT_APP_FIREBASE_PROJECT_ID</code>, etc. Copia los valores desde la consola de
+            Firebase → Configuración del proyecto → Tus apps. Luego reinicia{' '}
+            <code>npm start</code>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (authLoading) {
     return (

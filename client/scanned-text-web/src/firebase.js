@@ -10,6 +10,13 @@ import { getFirestore } from 'firebase/firestore';
 // - REACT_APP_FIREBASE_STORAGE_BUCKET
 // - REACT_APP_FIREBASE_MESSAGING_SENDER_ID
 // - REACT_APP_FIREBASE_APP_ID
+/** False when CRA env vars are missing — auth/Firestore will not work in the browser. */
+export const isWebFirebaseConfigured =
+  Boolean(
+    (process.env.REACT_APP_FIREBASE_API_KEY || '').trim() &&
+      (process.env.REACT_APP_FIREBASE_PROJECT_ID || '').trim()
+  );
+
 const firebaseConfig = {
   apiKey:
     process.env.REACT_APP_FIREBASE_API_KEY ||
