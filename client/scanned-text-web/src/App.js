@@ -5,34 +5,94 @@ import { auth, db, isWebFirebaseConfigured } from './firebase';
 import AuthForm from './AuthForm';
 import MainApp from './MainApp';
 
+const LOG = '[TextScan:App]';
+const debugAuth =
+  process.env.NODE_ENV === 'development' ||
+  process.env.REACT_APP_DEBUG_AUTH === '1';
+
 function App() {
   const [user, setUser] = useState(null);
   const [isLeader, setIsLeader] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
+    if (debugAuth) {
+      console.info(LOG, 'useEffect: subscribe onAuthStateChanged', {
+        isWebFirebaseConfigured,
+      });
+    }
+
+    let authCallbackCompleted = false;
+    const watchdogMs = 15000;
+    const watchdogId = setTimeout(() => {
+      if (!authCallbackCompleted) {
+        console.warn(
+          LOG,
+          `Watchdog (${watchdogMs}ms): auth listener callback still not finished. Often: getDoc hanging (network/rules), wrong project, or browser blocking Firebase. Open Network tab for firestore.googleapis.com / identitytoolkit.`
+        );
+      }
+    }, watchdogMs);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
+      if (debugAuth) {
+        console.info(LOG, 'onAuthStateChanged fired', {
+          hasUser: !!firebaseUser,
+          uid: firebaseUser?.uid || null,
+          email: firebaseUser?.email || null,
+        });
+      }
+
       try {
         if (!firebaseUser) {
+          if (debugAuth) {
+            console.info(LOG, 'branch: no Firebase user → show login');
+          }
           setUser(null);
           setIsLeader(false);
           return;
         }
 
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        if (debugAuth) {
+          console.info(LOG, 'fetching Firestore users/', firebaseUser.uid);
+        }
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
         const userData = userDoc.data();
 
+        if (debugAuth) {
+          console.info(LOG, 'getDoc result', {
+            exists: userDoc.exists(),
+            is_leader: userData?.is_leader,
+            keys: userData ? Object.keys(userData).slice(0, 12) : [],
+          });
+        }
+
         if (!userData?.is_leader) {
+          if (debugAuth) {
+            console.info(
+              LOG,
+              'branch: user exists but is_leader is not true → signOut, show login'
+            );
+          }
           await signOut(auth);
           setUser(null);
           setIsLeader(false);
           return;
         }
 
+        if (debugAuth) {
+          console.info(LOG, 'branch: leader OK → main app');
+        }
         setUser(firebaseUser);
         setIsLeader(true);
       } catch (err) {
-        console.error('Auth check failed', err);
+        console.error(LOG, 'Auth / Firestore check FAILED', {
+          code: err?.code,
+          message: err?.message,
+          name: err?.name,
+          err,
+        });
         try {
           await signOut(auth);
         } catch (_) {
@@ -41,11 +101,21 @@ function App() {
         setUser(null);
         setIsLeader(false);
       } finally {
+        authCallbackCompleted = true;
+        clearTimeout(watchdogId);
+        if (debugAuth) {
+          const ms =
+            typeof performance !== 'undefined' ? Math.round(performance.now() - t0) : '?';
+          console.info(LOG, 'finally: setAuthLoading(false)', { ms });
+        }
         setAuthLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(watchdogId);
+      unsubscribe();
+    };
   }, []);
 
   if (process.env.NODE_ENV !== 'test' && !isWebFirebaseConfigured) {

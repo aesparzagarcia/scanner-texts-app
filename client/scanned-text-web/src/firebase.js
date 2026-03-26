@@ -40,7 +40,24 @@ const firebaseConfig = {
     (process.env.NODE_ENV === 'test' ? '1:000000000000:web:test' : undefined),
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.REACT_APP_DEBUG_AUTH === '1'
+  ) {
+    console.info('[TextScan:firebase] initializeApp OK', {
+      isWebFirebaseConfigured,
+      projectId: firebaseConfig.projectId || '(missing)',
+      authDomain: firebaseConfig.authDomain || '(missing)',
+      hasApiKey: Boolean((firebaseConfig.apiKey || '').length),
+    });
+  }
+} catch (e) {
+  console.error('[TextScan:firebase] initializeApp FAILED', e?.code || e?.message || e);
+  throw e;
+}
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
