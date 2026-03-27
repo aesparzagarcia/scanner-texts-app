@@ -43,6 +43,13 @@ function InputField({ icon: Icon, name, type, placeholder, value, onChange, requ
 }
 
 function MainApp() {
+  // Comma-separated list in env, e.g.:
+  // REACT_APP_PROTECTED_USER_EMAILS=owner@domain.com,founder@domain.com
+  const PROTECTED_USER_EMAILS = (process.env.REACT_APP_PROTECTED_USER_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
   // --- texts state ---
   const [texts, setTexts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +97,7 @@ function MainApp() {
   };
 
   const normalizeText = (v) => (v ?? '').toString().trim().toLowerCase();
+  const isProtectedUserEmail = (email) => PROTECTED_USER_EMAILS.includes(normalizeText(email));
 
   const upsertUserEdits = (uid, patch) => {
     setUserEdits((prev) => ({
@@ -173,6 +181,11 @@ function MainApp() {
     setUsersError('');
     setUserSaving((prev) => ({ ...prev, [uid]: true }));
     try {
+      const targetUser = users.find((u) => u.id === uid);
+      if (targetUser && isProtectedUserEmail(targetUser.email)) {
+        setUsersError('Este usuario está protegido y no se puede modificar.');
+        return;
+      }
       const edits = userEdits[uid] || {};
       const payload = {
         is_leader: !!edits.is_leader,
@@ -210,6 +223,11 @@ function MainApp() {
       }
       if (snap.empty) {
         setLeaderMessage('❌ No se encontró usuario con ese correo.');
+        return;
+      }
+      const foundData = snap.docs[0].data() || {};
+      if (isProtectedUserEmail(foundData.email || email)) {
+        setLeaderMessage('❌ Este usuario está protegido y no se puede modificar.');
         return;
       }
       await updateDoc(snap.docs[0].ref, { is_leader: isLeader });
@@ -733,11 +751,12 @@ function MainApp() {
               <table className="users-table">
                 <thead>
                   <tr>
+                    <th>Nombre</th>
                     <th>Email</th>
-                    <th>is_leader</th>
-                    <th>Leader</th>
+                    <th>Es líder</th>
+                    <th>Líder</th>
                     <th>Phone</th>
-                    <th>Reference</th>
+                    <th>Referencia</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -749,6 +768,7 @@ function MainApp() {
                       return normalizeText(u.name).includes(term);
                     })
                     .map((u) => {
+                      const isProtected = isProtectedUserEmail(u.email);
                       const edits = userEdits[u.id] || {
                         is_leader: u.is_leader,
                         leader: u.leader,
@@ -757,41 +777,45 @@ function MainApp() {
                       const saving = !!userSaving[u.id];
                       return (
                         <tr key={u.id}>
+                          <td style={{ minWidth: 180 }}>{u.name || '—'}</td>
                           <td style={{ minWidth: 220 }}>{u.email || '—'}</td>
                           <td>
                             <input
                               type="checkbox"
                               checked={!!edits.is_leader}
+                              disabled={isProtected}
                               onChange={(e) => upsertUserEdits(u.id, { is_leader: e.target.checked })}
                             />
                           </td>
-                          <td style={{ minWidth: 180 }}>
+                          <td style={{ minWidth: 240, paddingRight: 20 }}>
                             <input
                               className="cell-input"
                               type="text"
                               value={edits.leader ?? ''}
+                              disabled={isProtected}
                               onChange={(e) => upsertUserEdits(u.id, { leader: e.target.value })}
                               placeholder="leader"
                             />
                           </td>
-                          <td style={{ minWidth: 140 }}>{u.phone || '—'}</td>
-                          <td style={{ minWidth: 200 }}>
+                          <td style={{ minWidth: 170 }}>{u.phone || '—'}</td>
+                          <td style={{ minWidth: 250, paddingRight: 24 }}>
                             <input
                               className="cell-input"
                               type="text"
                               value={edits.reference ?? ''}
+                              disabled={isProtected}
                               onChange={(e) => upsertUserEdits(u.id, { reference: e.target.value })}
                               placeholder="reference"
                             />
                           </td>
-                          <td style={{ whiteSpace: 'nowrap' }}>
+                          <td style={{ whiteSpace: 'nowrap', paddingLeft: 12 }}>
                             <button
                               type="button"
                               className="small-btn primary"
-                              disabled={saving}
+                              disabled={saving || isProtected}
                               onClick={() => saveUserRow(u.id)}
                             >
-                              {saving ? 'Guardando…' : 'Guardar'}
+                              {isProtected ? 'Protegido' : saving ? 'Guardando…' : 'Guardar'}
                             </button>
                           </td>
                         </tr>
