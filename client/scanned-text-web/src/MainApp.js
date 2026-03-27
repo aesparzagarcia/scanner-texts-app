@@ -783,8 +783,10 @@ function MainApp() {
                             <input
                               type="checkbox"
                               checked={!!edits.is_leader}
-                              disabled={isProtected}
-                              onChange={(e) => upsertUserEdits(u.id, { is_leader: e.target.checked })}
+                              onChange={(e) => {
+                                if (isProtected) return;
+                                upsertUserEdits(u.id, { is_leader: e.target.checked });
+                              }}
                             />
                           </td>
                           <td style={{ minWidth: 240, paddingRight: 20 }}>
@@ -792,8 +794,10 @@ function MainApp() {
                               className="cell-input"
                               type="text"
                               value={edits.leader ?? ''}
-                              disabled={isProtected}
-                              onChange={(e) => upsertUserEdits(u.id, { leader: e.target.value })}
+                              onChange={(e) => {
+                                if (isProtected) return;
+                                upsertUserEdits(u.id, { leader: e.target.value });
+                              }}
                               placeholder="leader"
                             />
                           </td>
@@ -803,8 +807,10 @@ function MainApp() {
                               className="cell-input"
                               type="text"
                               value={edits.reference ?? ''}
-                              disabled={isProtected}
-                              onChange={(e) => upsertUserEdits(u.id, { reference: e.target.value })}
+                              onChange={(e) => {
+                                if (isProtected) return;
+                                upsertUserEdits(u.id, { reference: e.target.value });
+                              }}
                               placeholder="reference"
                             />
                           </td>
@@ -812,10 +818,13 @@ function MainApp() {
                             <button
                               type="button"
                               className="small-btn primary"
-                              disabled={saving || isProtected}
-                              onClick={() => saveUserRow(u.id)}
+                              disabled={saving}
+                              onClick={() => {
+                                if (isProtected) return;
+                                saveUserRow(u.id);
+                              }}
                             >
-                              {isProtected ? 'Protegido' : saving ? 'Guardando…' : 'Guardar'}
+                              {saving ? 'Guardando…' : 'Guardar'}
                             </button>
                           </td>
                         </tr>
